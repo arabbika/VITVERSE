@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VITverse Mood Selection</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+      }
+    </script>
+</head>
+<body>
+    <img id="logo" src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITverse-6-21-2024-transformed.png" alt="VITverse Logo">
+    <div id="prompt"></div>
+
+    <div class="container">
+        <h1>I NEED</h1>
+        <div class="buttons">
+            <a class="neon-button neon-button__personal" id="relaxation-button">RELAXATION</a>
+            <div id="relaxation-dropdown" class="dropdown-content">
+                <a href="breathewell.html">Breathewell</a>
+            </div>
+            <a href="#" class="neon-button neon-button__physical">EXHILARATION</a>
+            <a href="#" class="neon-button neon-button__productivity">PRODUCTIVITY</a>
+            <a href="#" class="neon-button neon-button__relationships">CONNECTION</a>
+        </div>
+
+        <!-- Card Widgets -->
+        <div class="card-container">
+            <div class="card-widget personal">
+                <h2>Personal Growth</h2>
+                <div class="subwidgets">
+                    <div class="subwidget personal-1">Skill Development</div>
+                    <div class="subwidget personal-2">Reflection Journal</div>
+                    <div class="subwidget personal-3">Mindfulness Activities</div>
+                    <div class="subwidget personal-4">Mood Tracking</div>
+                </div>
+            </div>
+
+            <div class="card-widget physical">
+                <h2>Physical Health</h2>
+                <div class="subwidgets">
+                    <div class="subwidget physical-1">Workout Progress</div>
+                    <div class="subwidget physical-2">Log Nutrition</div>
+                </div>
+            </div>
+
+            <div class="card-widget productivity">
+                <h2>Productivity</h2>
+                <div class="subwidgets">
+                    <div class="subwidget productivity-1">Task List</div>
+                    <div class="subwidget productivity-2">Deadline Reminders</div>
+                </div>
+            </div>
+            <div class="card-widget relationships">
+                <h2>Relationships</h2>
+                <div class="subwidgets">
+                    <div class="subwidget relationships-1">Communication Logs</div>
+                    <div class="subwidget relationships-2">Interaction Goals</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.getElementById("relaxation-button").addEventListener("click", function() {
+        document.getElementById("relaxation-dropdown").classList.toggle("show");
+    });
+    </script>
+</body>
+</html>
