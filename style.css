@@ -179,6 +179,28 @@ footer {
     text-shadow: 0 0 15px #ff1493;
 }
 
+/* Hide child buttons by default */
+.child-buttons {
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+/* Style for two buttons per row, centered */
+.child-buttons .neumorphic-button {
+    width: 130px;
+    height: 100px;
+    margin: 10px; /* Adjust spacing as needed */
+}
+
+/* Show child buttons on parent button interaction */
+.footer-button:hover + .child-buttons,
+.footer-button:focus + .child-buttons,
+.footer-button:active + .child-buttons {
+    display: flex;
+}
 
 @media (max-width: 768px) {
     .neumorphic-button, .footer-button {
