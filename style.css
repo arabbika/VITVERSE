@@ -41,12 +41,12 @@ header {
 
 .top-buttons {
     display: flex;
-    gap: 10px;
+    gap: 1px;
 }
 
 .neumorphic-button, .footer-button {
-    width: 130px;
-    height: 100px;
+    width: 80px;
+    height: 60px;
     border-radius: 15px;
     background: #18191f;
     display: flex;
@@ -66,7 +66,7 @@ header {
 }
 
 .neumorphic-button span, .footer-button span {
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .neumorphic-button:hover, .footer-button:hover {
@@ -150,6 +150,7 @@ footer {
     width: 100px;
     height: 50px;
     border-radius: 10px;
+    
 }
 
 
@@ -190,8 +191,8 @@ footer {
 
 /* Style for two buttons per row, centered */
 .child-buttons .neumorphic-button {
-    width: 130px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     margin: 10px; /* Adjust spacing as needed */
 }
 
@@ -202,11 +203,32 @@ footer {
     display: flex;
 }
 
-@media (max-width: 768px) {
-    .neumorphic-button, .footer-button {
-        width: 100px;
-        height: 80px;
-    }
+
 
     
+}
+
+
+@media screen and (max-width: 768px) {
+    .neumorphic-button.chronozen,
+    .neumorphic-button.dreamweaver,
+    .neumorphic-button.breathewell,
+    .neumorphic-button.soulsync,
+    .footer-button {
+        width: 100px;
+        height: 80px;
+        font-size: 12px; /* Adjust font size for medium screens */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .neumorphic-button.chronozen,
+    .neumorphic-button.dreamweaver,
+    .neumorphic-button.breathewell,
+    .neumorphic-button.soulsync,
+    .footer-button {
+        width: 80px;
+        height: 60px;
+        font-size: 10px; /* Adjust font size for smaller screens */
+    }
 }
