@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="breathewell.css" />
+    <title>Breathe Well</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        }).catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+      }
+    </script>
+</head>
+
+<body>
+    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO.png" alt="VITVERSE Logo" style="width: 200px; margin-top: 20px;">
+    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/BREATHEWELLLOGO.png" alt="BREATHEWELL Logo" style="width: 150px; margin-bottom: 20px;">
+
+    <div class="menu">
+        <button class="neumorphic-btn" onclick="selectBreathing('478')">4-7-8 Breathing</button>
+        <button class="neumorphic-btn" onclick="selectBreathing('box')">Box Breathing</button>
+        <button class="neumorphic-btn" onclick="selectBreathing('alternateNostril')">Alternate Nostril Breathing</button>
+    </div>
+
+    <div class="start-container">
+        <button class="neumorphic-btn" id="start-button" onclick="startBreathing()">Start</button>
+    </div>
+
+    <div class="container">
+        <div class="circle"></div>
+        <div class="circle2"></div>
+    </div>
+
+    <script>
+      function selectBreathing(type) {
+          document.body.className = type;
+          document.getElementById('start-button').style.display = 'block'; // Show the start button
+          document.querySelector('.container').style.display = 'none'; // Hide the container initially
+      }
+
+      function startBreathing() {
+          document.querySelector('.container').style.display = 'block'; // Show the container when start is clicked
+          document.getElementById('start-button').style.display = 'none'; // Hide the start button
+      }
+    </script>
+
+</body>
+</html>

@@ -18,6 +18,10 @@
             });
         }
 
+        function redirectTo(page) {
+            window.location.href = page; // Redirect to the specified page
+        }
+
         function showChildButtons(category) {
             document.querySelectorAll('.child-buttons').forEach(div => {
                 div.style.display = 'none';
@@ -31,23 +35,24 @@
       <header>
         
         <div class="top-buttons">
-            <button class="neumorphic-button breathewell" onclick="showChildButtons('breathewell')">
+            <button class="neumorphic-button breathewell" onclick="redirectTo('breathewell.html')">
                 <i class="fa-solid fa-wind"></i>
                 <span>BreatheWell</span>
             </button>
-            <button class="neumorphic-button chronozen" onclick="showChildButtons('chronozen')">
+            <button class="neumorphic-button chronozen" onclick="redirectTo('chronozen.html')">
                 <i class="fa-solid fa-calendar"></i>
                 <span>ChronoZen</span>
             </button>
-            <button class="neumorphic-button dreamweaver" onclick="showChildButtons('dreamweaver')">
+            <button class="neumorphic-button dreamweaver" onclick="redirectTo('dreamweaver.html')">
                 <i class="fa-solid fa-lightbulb"></i>
                 <span>Dreamweaver</span>
             </button>
-            <button class="neumorphic-button soulsync" onclick="showChildButtons('soulsync')">
+            <button class="neumorphic-button soulsync" onclick="redirectTo('soulsync.html')">
                 <i class="fa-solid fa-heart"></i>
                 <span>SoulSync</span>
             </button>
         </div>
+
     </header>
     <div class="container">
         <div id="breathewell" class="child-buttons breathewell">

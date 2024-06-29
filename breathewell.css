@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+body {
+  background-color: #1a1a1a;
+  background-size: cover;
+  font-family: "Orbitron";
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.menu {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.start-container {
+  margin-bottom: 20px;
+}
+
+.neumorphic-btn {
+  background: #2c2c2c;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 5px 5px 10px #1a1a1a, -5px -5px 10px #444;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.neumorphic-btn:active {
+  box-shadow: inset 5px 5px 10px #1a1a1a, inset -5px -5px 10px #444;
+}
+
+.container {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  position: relative;
+  animation: pulse 10s linear infinite, icyGlow 5s ease-in-out infinite;
+  box-shadow: 0 0 30px 10px rgba(0, 191, 255, 0.5), 0 0 60px 20px rgba(0, 191, 255, 0.3);
+  z-index: -1;
+  display: none; /* Initially hide the container */
+}
+
+.container:after {
+  content: 'breathe in';
+  position: absolute;
+  color: rgba(255, 255, 255, .7);
+  top: calc(50% - 10px);
+  font-size: 24px;
+  font-family: Orbitron;
+  width: 100%;
+  vertical-align: middle;
+  text-align: center;
+  animation: text-478 10s linear infinite;
+}
+
+.container:before {
+  content: '';
+  width: 16px;
+  height: 50%;
+  position: absolute;
+  display: block;
+  top: 0;
+  left: calc(50% - 8px);
+  z-index: 999;
+  background-image: radial-gradient(
+    circle at top center,
+    #6080c8 0%,
+    #6080c8 8px,
+    transparent 8px,
+    transparent 100%
+  );
+  animation: rotate-478 10s linear infinite;
+  transform-origin: center bottom;
+}
+
+.circle {
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  background: radial-gradient(circle at center, #00cfff 20%, #00aaff 40%, #0080ff 60%, transparent 70%);
+  animation: icyGlow 5s ease-in-out infinite;
+  background-clip: padding-box;
+}
+
+/* 4-7-8 Breathing Styles */
+body.478 .container:after {
+  animation: text-478 10s linear infinite;
+}
+
+body.478 .container:before {
+  animation: rotate-478 10s linear infinite;
+}
+
+@keyframes text-478 {
+  0% {
+    content: 'breathe in';
+  }
+  35% {
+    content: 'hold';
+  }
+  36% {
+    content: 'breathe out';
+  }
+  100% {
+    content: 'hold';
+  }
+}
+
+@keyframes rotate-478 {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(90deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Box Breathing Styles */
+body.box .container:after {
+  animation: text-box 16s linear infinite;
+}
+
+body.box .container:before {
+  animation: rotate-box 16s linear infinite;
+}
+
+@keyframes text-box {
+  0%, 25% {
+    content: 'breathe in';
+  }
+  26%, 50% {
+    content: 'hold';
+  }
+  51%, 75% {
+    content: 'breathe out';
+  }
+  76%, 100% {
+    content: 'hold';
+  }
+}
+
+@keyframes rotate-box {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alternate Nostril Breathing Styles */
+body.alternateNostril .container:after {
+  animation: text-alternateNostril 16s linear infinite;
+}
+
+body.alternateNostril .container:before {
+  animation: rotate-alternateNostril 16s linear infinite;
+}
+
+@keyframes text-alternateNostril {
+  0%, 25% {
+    content: 'inhale left';
+  }
+  26%, 50% {
+    content: 'exhale right';
+  }
+  51%, 75% {
+    content: 'inhale right';
+  }
+  76%, 100% {
+    content: 'exhale left';
+  }
+}
+
+@keyframes rotate-alternateNostril {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  75% {
+    transform: rotate(270deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(.6);
+  }
+  25% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(.6);
+  }
+  100% {
+    transform: scale(.6);
+  }
+}
+
+@keyframes icyGlow {
+  0%, 100% {
+    box-shadow: 0 0 30px 10px rgba(0, 191, 255, 0.5), 0 0 60px 20px rgba(0, 191, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px 20px rgba(0, 191, 255, 0.7), 0 0 90px 30px rgba(0, 191, 255, 0.5);
+  }
+}
