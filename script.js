@@ -1,11 +1,5 @@
-function redirectTo(url) {
-    window.location.href = url;
-}
-
-
-function showChildButtons(category) {
-    document.querySelectorAll('.child-buttons').forEach(div => {
-        div.style.display = 'none';
-    });
-    document.querySelector(`#${category}`).style.display = 'flex';
-}
+<script>
+    function navigateToPage(page) {
+        window.location.href = page;
+    }
+</script>

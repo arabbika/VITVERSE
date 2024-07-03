@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitverse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js'></script>
+    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO-1.png" alt="VITVERSE Logo" class="logo-image">
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }).catch(function(error) {
+                console.log('ServiceWorker registration failed: ', error);
+            });
+        }
+
+        function showChildButtons(category) {
+            document.querySelectorAll('.child-buttons').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.querySelector(`#${category}`).style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                editable: true,
+                droppable: true, // this lets things be dropped onto the calendar
+                eventReceive: function(info) { // this is triggered when a drop happens
+                    info.event.setProp('title', info.draggedEl.getAttribute('data-event-title')); // set the title based on the data attribute
+                }
+            });
+
+            calendar.render();
+
+            // make the buttons draggable
+            var draggableEl = document.querySelectorAll('.neumorphic-button');
+            draggableEl.forEach(function(elem) {
+                elem.setAttribute('data-event-title', elem.querySelector('span').innerText); // set the title for the dragged event
+                new FullCalendar.Draggable(elem, {
+                    itemSelector: '.neumorphic-button',
+                    eventData: function() {
+                        return {
+                            title: elem.getAttribute('data-event-title')
+                        };
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <div class="top-buttons">
+                <button class="neumorphic-button breathewell" onclick="showChildButtons('breathewell')" id="breathewell-btn">
+                    <i class="fa-solid fa-wind"></i>
+                    <span>BreatheWell</span>
+                </button>
+                <button class="neumorphic-button chronozen" onclick="showChildButtons('chronozen')" id="chronozen-btn">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span>ChronoZen</span>
+                </button>
+                <button class="neumorphic-button dreamweaver" onclick="showChildButtons('dreamweaver')" id="dreamweaver-btn">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Dreamweaver</span>
+                </button>
+                <button class="neumorphic-button soulsync" onclick="showChildButtons('soulsync')" id="soulsync-btn">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>SoulSync</span>
+                </button>
+            </div>
+        </header>
+        <div class="container">
+            <div id="breathewell" class="child-buttons breathewell">
+                <!-- Add child buttons for BreatheWell here -->
+            </div>
+            <div id="chronozen" class="child-buttons chronozen">
+                <!-- Add child buttons for ChronoZen here -->
+            </div>
+            <div id="dreamweaver" class="child-buttons dreamweaver">
+                <!-- Add child buttons for Dreamweaver here -->
+            </div>
+            <div id="soulsync" class="child-buttons soulsync">
+                <!-- Add child buttons for SoulSync here -->
+            </div>
+            <div id="wellbeing" class="child-buttons wellbeing">
+                <button class="neumorphic-button" id="skills-btn">
+                    <i class="fa-solid fa-dumbbell"></i>
+                    <span>Skills</span>
+                </button>
+                <button class="neumorphic-button" id="mindfulness-btn">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Mindfulness</span>
+                </button>
+                <button class="neumorphic-button" id="reflection-btn">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Reflection</span>
+                </button>
+                <button class="neumorphic-button" id="moods-btn">
+                    <i class="fa-solid fa-smile"></i>
+                    <span>Moods</span>
+                </button>
+                <button class="neumorphic-button" id="exercise-btn">
+                    <i class="fa-solid fa-running"></i>
+                    <span>Exercise</span>
+                </button>
+                <button class="neumorphic-button" id="nutrition-btn">
+                    <i class="fa-solid fa-utensils"></i>
+                    <span>Nutrition</span>
+                </button>
+                <button class="neumorphic-button" id="sleep-btn">
+                    <i class="fa-solid fa-bed"></i>
+                    <span>Sleep</span>
+                </button>
+                <button class="neumorphic-button" id="financial-btn">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    <span>Financial</span>
+                </button>
+            </div>
+            <div id="productivity" class="child-buttons productivity">
+                <button class="neumorphic-button" id="tasks-btn">
+                    <i class="fa-solid fa-list"></i>
+                    <span>Tasks</span>
+                </button>
+            </div>
+            <div id="connections" class="child-buttons connections">
+                <button class="neumorphic-button" id="interaction-btn">
+                    <i class="fa-solid fa-handshake"></i>
+                    <span>Interaction</span>
+                </button>
+                <button class="neumorphic-button" id="communication-btn">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Communication</span>
+                </button>
+            </div>
+            <div id="relaxation" class="child-buttons relaxation">
+                <button class="neumorphic-button" id="games-btn">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Games</span>
+                </button>
+                <button class="neumorphic-button" id="music-btn">
+                    <i class="fa-solid fa-music"></i>
+                    <span>Music</span>
+                </button>
+            </div>
+        </div>
+        <div class="calendar-container">
+            <div id='calendar'></div>
+        </div>
+        <footer>
+            <button class="footer-button wellbeing" onclick="showChildButtons('wellbeing')">WellBeing</button>
+            <button class="footer-button productivity" onclick="showChildButtons('productivity')">Productivity</button>
+            <button class="footer-button connections" onclick="showChildButtons('connections')">Connections</button>
+            <button class="footer-button relaxation" onclick="showChildButtons('relaxation')">Relaxation</button>
+        </footer>
+    </div>
+</body>
+</html>

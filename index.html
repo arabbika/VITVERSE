@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
-    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO.png" alt="VITVERSE Logo" class="logo-image">
+    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO-1.png" alt="VITVERSE Logo" class="logo-image">
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -18,10 +18,6 @@
             });
         }
 
-        function redirectTo(page) {
-            window.location.href = page; // Redirect to the specified page
-        }
-
         function showChildButtons(category) {
             document.querySelectorAll('.child-buttons').forEach(div => {
                 div.style.display = 'none';
@@ -29,30 +25,33 @@
             document.querySelector(`#${category}`).style.display = 'flex';
         }
     </script>
+<script>
+        function navigateToPage(page) {
+            window.location.href = page;
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
       <header>
-        
-        <div class="top-buttons">
-            <button class="neumorphic-button breathewell" onclick="redirectTo('breathewell.html')">
-                <i class="fa-solid fa-wind"></i>
-                <span>BreatheWell</span>
-            </button>
-            <button class="neumorphic-button chronozen" onclick="redirectTo('chronozen.html')">
-                <i class="fa-solid fa-calendar"></i>
-                <span>ChronoZen</span>
-            </button>
-            <button class="neumorphic-button dreamweaver" onclick="redirectTo('dreamweaver.html')">
-                <i class="fa-solid fa-lightbulb"></i>
-                <span>Dreamweaver</span>
-            </button>
-            <button class="neumorphic-button soulsync" onclick="redirectTo('soulsync.html')">
-                <i class="fa-solid fa-heart"></i>
-                <span>SoulSync</span>
-            </button>
-        </div>
-
+          <div class="top-buttons">
+                <button class="neumorphic-button breathewell" onclick="navigateToPage('breathewell.html')" id="breathewell-btn">
+                    <i class="fa-solid fa-wind"></i>
+                    <span>BreatheWell</span>
+                </button>
+                <button class="neumorphic-button chronozen" onclick="navigateToPage('chronozen.html')" id="chronozen-btn">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span>ChronoZen</span>
+                </button>
+                <button class="neumorphic-button dreamweaver" onclick="navigateToPage('dreamweaver.html')" id="dreamweaver-btn">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Dreamweaver</span>
+                </button>
+                <button class="neumorphic-button soulsync" onclick="navigateToPage('soulsync.html')" id="soulsync-btn">
+                    <i class="fa-solid fa-heart"></i>
+                    <span>SoulSync</span>
+                </button>
+            </div>
     </header>
     <div class="container">
         <div id="breathewell" class="child-buttons breathewell">
