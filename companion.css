@@ -31,9 +31,11 @@
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-5px); }
 }
+
+/* Squishy breathing effect */
 @keyframes companion-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.04); }
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.05, 1.02); } 
 }
 
 /* --- Eyes & Mouth --- */
@@ -47,6 +49,12 @@
 .companion[data-mood="settled"] .eye { transform: scaleY(0.65); }
 .companion[data-mood="quiet"]   .eye { transform: scaleY(0.45); }
 .companion[data-mood="low"]     .eye { transform: scaleY(0.35) translateY(2px); }
+
+/* Blinking override */
+.companion.is-blinking .eye {
+  transform: scaleY(0.1) !important;
+  transition: transform 0.1s ease;
+}
 
 .companion .mouth { display: none; }
 .companion[data-mood="radiant"] .mouth-radiant { display: inline; }
