@@ -17,11 +17,11 @@
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- FullCalendar v6 (was v5.10.2; eventRender API removed in v6) -->
+    <!-- FullCalendar v6 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
-    <!-- Companion engine — must load before the page script references it -->
+    <!-- Companion engine -->
     <script src="companion.js"></script>
 
     <script>
@@ -33,6 +33,23 @@
     </script>
 
     <style>
+        /* ---------- Logo Link ---------- */
+        .logo-link {
+            display: inline-block;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .logo-link:active {
+            transform: scale(0.95);
+        }
+        .logo-image {
+            width: 160px; /* Adjusted to match BreatheWell */
+            height: auto;
+            display: block;
+        }
+
         /* ---------- child-button default state ---------- */
         .child-buttons:not(.active) { display: none; }
         .child-buttons.active        { display: flex; }
@@ -48,7 +65,13 @@
             border-radius: 12px;
             padding: 12px;
             box-shadow: 5px 5px 10px #1a1a1a, -5px -5px 10px #444;
+            /* Dark mode overrides for FullCalendar */
+            --fc-border-color: #333;
+            --fc-daygrid-event-dot-width: 8px;
+            color: #e0e0e0;
         }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: #333; }
+        .fc-col-header-cell-cushion, .fc-daygrid-day-number { color: #e0e0e0; text-decoration: none; }
 
         /* ---------- event delete icon ---------- */
         .event-delete-icon {
@@ -65,15 +88,6 @@
         }
         .event-delete-icon:hover { color: #f44; }
 
-        /* ---------- logo link ---------- */
-        .logo-link { display: inline-block; }
-        .logo-image {
-            width: 200px;
-            height: auto;
-            cursor: pointer;
-            margin-bottom: 12px;
-        }
-
         /* ---------- focus visibility ---------- */
         .neumorphic-button:focus-visible,
         .footer-button:focus-visible {
@@ -86,9 +100,9 @@
 <body>
     <div class="wrapper">
         <header>
+            <!-- Updated Logo wrapped in a link back to the hub -->
             <a href="index.html" class="logo-link" aria-label="Back to Vitverse home">
-                <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO-1.png"
-                     alt="VITVERSE" class="logo-image">
+                <img src="logo.png" alt="VITVERSE" class="logo-image">
             </a>
 
             <div class="top-buttons">
@@ -312,8 +326,7 @@
 
             calendar.render();
 
-            // Only child buttons inside .container are draggable —
-            // header nav buttons should not be draggable.
+            // Only child buttons inside .container are draggable
             document.querySelectorAll('.container .neumorphic-button').forEach(function (elem) {
                 const span = elem.querySelector('span');
                 const title = span ? span.textContent.trim() : 'Task';
