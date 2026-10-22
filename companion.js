@@ -64,7 +64,7 @@ const Companion = (() => {
     BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({
       calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5,
       bond: 1 }) },
-    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ energy: 5, bond: 1 }) },
+    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ energy: 5, mood: 2, bond: 1 }) },
     SLEEP_LOGGED:        { m: 'sleep',       d: p => {
       const h = p.hours ?? 7;
       const q = clamp(p.quality ?? 3, 1, 5);
@@ -123,7 +123,6 @@ const Companion = (() => {
   function getMemory(s) {
     if (s.bond === 0) return "Hi! I'm your companion. Log something to help me grow.";
     
-    // Find the most recent event that we can talk about
     const recent = s.events.slice().reverse();
     for (let e of recent) {
       if (e.type === 'SLEEP_LOGGED' && e.payload?.hours) {
@@ -145,6 +144,20 @@ const Companion = (() => {
     return "I'm glad you're here.";
   }
 
+  // ---- daily quest generation ----
+  function getQuest(s, v) {
+    // Find the lowest stat
+    const stats = [
+      { key: 'calm', val: v.calm, text: "I feel a bit anxious. Can we do a breathing exercise?", link: "breathewell.html", action: "Breathe" },
+      { key: 'energy', val: v.energy, text: "I'm feeling sluggish. Can we finish a task?", link: "chronozen.html", action: "Focus" },
+      { key: 'rest', val: v.rest, text: "I'm sleepy. Will you log your sleep for me?", link: "dreamweaver.html", action: "Sleep" },
+      { key: 'mood', val: v.mood, text: "I feel a little down. Can you check in with me?", link: "soulsync.html", action: "SoulSync" }
+    ];
+
+    stats.sort((a, b) => a.val - b.val);
+    return stats[0];
+  }
+
   function view(s, now = Date.now()) {
     const v = decayed(s, now);
     const h = new Date(now).getHours();
@@ -159,6 +172,7 @@ const Companion = (() => {
       isResting: v.rest < 40 && (h >= 22 || h < 6),
       isNeglected: false,
       memory: getMemory(s),
+      quest: getQuest(s, v),
     };
   }
 
