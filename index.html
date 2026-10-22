@@ -27,10 +27,11 @@
                 <button type="button" class="neumorphic-button" onclick="navigateToPage('chronozen.html')">
                     <i class="fa-solid fa-calendar"></i><span>ChronoZen</span>
                 </button>
-                <button type="button" class="neumorphic-button" onclick="alert('Dreamweaver coming soon')">
+                <!-- Updated to point to the real pages -->
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('dreamweaver.html')">
                     <i class="fa-solid fa-lightbulb"></i><span>Dreamweaver</span>
                 </button>
-                <button type="button" class="neumorphic-button" onclick="alert('SoulSync coming soon')">
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('soulsync.html')">
                     <i class="fa-solid fa-heart"></i><span>SoulSync</span>
                 </button>
             </div>
@@ -43,7 +44,8 @@
             
             <!-- Neumorphic Circle Stage -->
             <div style="background:#222; border-radius:50%; padding:40px; box-shadow:inset 6px 6px 12px #111, inset -6px -6px 12px #333;">
-                <svg class="companion" id="companion" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Added onclick="petCompanion()" and cursor transition -->
+                <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style="cursor: pointer; transition: transform 0.15s ease;">
                     <defs>
                         <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
                             <stop offset="0%" stop-color="var(--body-inner)"/>
@@ -168,6 +170,26 @@
         const uuid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
         function emit(type, payload) {
             Companion.emit({ id: uuid(), type, payload });
+        }
+
+        // Pet the Companion (Limit 3 per day to prevent spamming)
+        let petsToday = 0;
+        function petCompanion() {
+            const svg = document.getElementById('companion');
+            
+            // Trigger a jump animation
+            svg.style.transform = 'scale(0.9) translateY(-20px)';
+            setTimeout(() => { svg.style.transform = 'scale(1) translateY(0)'; }, 150);
+
+            // Give bond if under daily limit
+            if (petsToday < 3) {
+                Companion.emit({
+                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+                    type: 'MOOD_CHECKIN', // Piggybacking on mood checkin for a tiny bump
+                    payload: { value: 5 } 
+                });
+                petsToday++;
+            }
         }
 
         // Initialize on load
