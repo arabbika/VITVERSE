@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vitverse-v1';
+const CACHE_NAME = 'vitverse-v2'; // Change from v1 to v2;
 const ASSETS = [
   './',
   './index.html',
