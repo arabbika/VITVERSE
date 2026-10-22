@@ -65,16 +65,26 @@
                         
                         <!-- BODY & FACE -->
                         <g class="breath-group">
-                            <ellipse class="body" cx="100" cy="115" rx="65" ry="60" fill="url(#bodyGrad)"/>
+                            <!-- Organic, wobbly body path -->
+                            <path class="body" d="M 100 175 C 35 175, 25 110, 45 70 C 65 35, 135 35, 155 70 C 175 110, 165 175, 100 175 Z" fill="url(#bodyGrad)"/>
+                            
                             <g class="face">
+                                <!-- Eyes -->
                                 <ellipse class="eye" cx="80" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
                                 <ellipse class="eye" cx="120" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+                                
+                                <!-- Eye Glints (makes it sentient) -->
+                                <circle cx="78" cy="102" r="2.5" fill="#fff" opacity="0.8"/>
+                                <circle cx="118" cy="102" r="2.5" fill="#fff" opacity="0.8"/>
+
+                                <!-- Mouths -->
                                 <path class="mouth mouth-radiant" d="M 82 128 Q 100 145 118 128" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-content" d="M 85 130 Q 100 138 115 130" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-settled" d="M 88 132 L 112 132" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-quiet" d="M 88 133 Q 100 131 112 133" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-low" d="M 85 137 Q 100 127 115 137" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                             </g>
+                            
                             <g class="cheeks">
                                 <circle cx="66" cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
                                 <circle cx="134" cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
@@ -162,10 +172,7 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default tab
             showChildButtons('wellbeing');
-            
-            // Mount the companion to the SVG element
             CompanionUI.mount(document.getElementById('companion'));
         });
     </script>
