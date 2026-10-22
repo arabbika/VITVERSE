@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <link rel="stylesheet" href="breathewell.css" />
-    <title>Breathe Well</title>
+    <title>Breathe Well — Vitverse</title>
     <link rel="manifest" href="manifest.json">
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
+        navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
           console.log('Service Worker registered with scope:', registration.scope);
         }).catch((error) => {
@@ -17,16 +17,36 @@
         });
       }
     </script>
+    <style>
+        /* Styling for the home link */
+        .logo-link {
+            display: inline-block;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .logo-link:active {
+            transform: scale(0.95);
+        }
+        .logo-link img {
+            width: 160px;
+            height: auto;
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
-    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO.png" alt="VITVERSE Logo" style="width: 200px; margin-top: 20px;">
-    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/BREATHEWELLLOGO.png" alt="BREATHEWELL Logo" style="width: 150px; margin-bottom: 20px;">
+    <!-- Clicking the logo takes you back to the hub -->
+    <a href="index.html" class="logo-link" aria-label="Back to Vitverse">
+        <img src="logo.png" alt="VITVERSE Logo">
+    </a>
 
     <div class="menu">
         <button class="neumorphic-btn" onclick="selectBreathing('b478')">4-7-8 Breathing</button>
         <button class="neumorphic-btn" onclick="selectBreathing('box')">Box Breathing</button>
-        <button class="neumorphic-btn" onclick="selectBreathing('alternateNostril')">Alternate Nostril Breathing</button>
+        <button class="neumorphic-btn" onclick="selectBreathing('alternateNostril')">Alternate Nostril</button>
     </div>
 
     <div class="start-container">
@@ -40,6 +60,7 @@
 
     <script>
       let cycleTimer = null;
+      // 4-7-8 is 19s (4+7+8), Box is 16s, Alternate is 16s
       const CYCLE_MS = { b478: 19000, box: 16000, alternateNostril: 16000 };
 
       function stopBreathing() {
@@ -64,6 +85,7 @@
               document.body.classList.contains('box')              ? 'box'    :
               document.body.classList.contains('alternateNostril') ? 'alternateNostril' : 'b478';
 
+          // Award one event per completed cycle to feed the companion
           cycleTimer = setInterval(() => {
               if (window.Companion) {
                   Companion.emit({
@@ -75,11 +97,13 @@
           }, CYCLE_MS[protocol]);
       }
 
+      // Stop the timer if the user switches tabs so they don't farm points
       document.addEventListener('visibilitychange', () => {
           if (document.hidden) stopBreathing();
       });
     </script>
 
+    <!-- Load the companion engine -->
     <script src="companion.js"></script>
 </body>
 </html>
