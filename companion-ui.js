@@ -12,6 +12,19 @@ const CompanionUI = (() => {
     
     // Re-render every 5 seconds so decay and resting states update while the page is idle
     setInterval(() => render(Companion.view()), 5_000);
+
+    // Dedicated random blinking loop (every 3 to 7 seconds)
+    function scheduleBlink() {
+      const delay = 3000 + Math.random() * 4000;
+      setTimeout(() => {
+        if (!svg.classList.contains('is-resting')) {
+          svg.classList.add('is-blinking');
+          setTimeout(() => svg.classList.remove('is-blinking'), 200);
+        }
+        scheduleBlink(); // loop
+      }, delay);
+    }
+    scheduleBlink();
   }
 
   function render(v) {
