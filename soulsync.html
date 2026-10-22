@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSync — Vitverse</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="companion.js"></script>
+    <style>
+        body { transition: background 0.8s ease; background: #1a1a1a; }
+        .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; }
+        .logo-image { width: 160px; height: auto; display: block; }
+        
+        .soul-card {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px; padding: 30px; width: 100%; max-width: 400px;
+            box-shadow: inset 6px 6px 12px #111, inset -6px -6px 12px #333;
+            text-align: center; border: 1px solid rgba(255,255,255,0.05);
+        }
+        h2 { color: #fff; margin-top: 0; font-size: 20px; }
+        
+        .mood-grid { display: flex; justify-content: center; gap: 15px; margin: 20px 0 30px 0; }
+        .mood-btn {
+            background: #222; border: none; border-radius: 50%; width: 60px; height: 60px;
+            font-size: 30px; cursor: pointer; box-shadow: 4px 4px 8px #111, -4px -4px 8px #333;
+            transition: all 0.2s ease; opacity: 0.5;
+        }
+        .mood-btn.selected { opacity: 1; box-shadow: inset 4px 4px 8px #111, inset -4px -4px 8px #333; transform: scale(1.1); }
+        
+        textarea {
+            width: 100%; height: 100px; background: #111; border: 1px solid #333;
+            border-radius: 12px; padding: 15px; color: #fff; font-family: inherit;
+            resize: none; margin-bottom: 20px; outline: none;
+        }
+        textarea:focus { border-color: #00bfff; }
+        
+        .save-btn {
+            background: #00bfff; color: #000; border: none; padding: 15px 40px; border-radius: 30px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4); transition: transform 0.2s ease;
+        }
+        .save-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div class="wrapper" style="align-items: center;">
+        <a href="index.html" class="logo-link"><img src="logo.png" alt="VITVERSE" class="logo-image"></a>
+        
+        <div class="soul-card">
+            <h2>✨ SoulSync</h2>
+            <p style="color: #888; font-size: 14px;">How is your soul feeling?</p>
+            
+            <div class="mood-grid" id="mood-grid">
+                <button type="button" class="mood-btn" data-m="1">😔</button>
+                <button type="button" class="mood-btn" data-m="2">😐</button>
+                <button type="button" class="mood-btn" data-m="3">🙂</button>
+                <button type="button" class="mood-btn" data-m="4">😄</button>
+                <button type="button" class="mood-btn" data-m="5">🤩</button>
+            </div>
+            
+            <textarea id="reflection" placeholder="Write a quick reflection (optional)..."></textarea>
+            
+            <button type="button" class="save-btn" onclick="saveSoul()">Save Check-in</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedMood = 3;
+        const mButtons = document.querySelectorAll('.mood-btn');
+        const body = document.body;
+
+        // Color themes based on mood
+        const themes = {
+            1: 'radial-gradient(circle at center, #1a1a2e 0%, #000 100%)', // Low: Dark
+            2: 'radial-gradient(circle at center, #1a1a1a 0%, #000 100%)', // Okay: Neutral
+            3: 'radial-gradient(circle at center, #1e2a38 0%, #0a0a0a 100%)', // Good: Slight Blue
+            4: 'radial-gradient(circle at center, #2a1e38 0%, #0a0a0a 100%)', // Great: Purple
+            5: 'radial-gradient(circle at center, #382a1e 0%, #0a0a0a 100%)'  // Amazing: Gold
+        };
+
+        mButtons.forEach(btn => {
+            if (btn.dataset.m == selectedMood) btn.classList.add('selected');
+            
+            btn.addEventListener('click', () => {
+                mButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMood = parseInt(btn.dataset.m);
+                body.style.background = themes[selectedMood];
+            });
+        });
+
+        function saveSoul() {
+            const text = document.getElementById('reflection').value.trim();
+            
+            if (window.Companion) {
+                // Log the mood
+                Companion.emit({
+                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + '-m',
+                    type: 'MOOD_CHECKIN',
+                    payload: { value: selectedMood }
+                });
+
+                // If they wrote something, log a reflection too
+                if (text.length > 0) {
+                    Companion.emit({
+                        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + '-r',
+                        type: 'REFLECTION_WRITTEN',
+                        payload: { text: text }
+                    });
+                }
+            }
+
+            const btn = document.querySelector('.save-btn');
+            btn.textContent = 'Saved! Returning...';
+            btn.style.background = '#4ade80';
+            
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        }
+    </script>
+</body>
+</html>
