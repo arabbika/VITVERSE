@@ -1,26 +1,59 @@
+/* ============================================================
+   BreatheWell — full corrected stylesheet
+   ------------------------------------------------------------
+   Fixes vs. original:
+   - .b478 replaces the invalid `body.478` selector
+   - Per-protocol timings (4-7-8 = 19s; Box / Alternate = 16s)
+   - `content` keyframes now match real breathing ratios
+   - body margin reset, 100dvh, no horizontal overflow
+   - removed z-index:-1 on .container (was hiding it behind <body>)
+   - .circle2 given a subtle inner highlight (was a dead element)
+   - :focus-visible outlines for keyboard users
+   - prefers-reduced-motion support
+
+   KNOWN LIMITATION:
+   The "breathe in / hold / breathe out" label is driven by animating
+   the CSS `content` property, which only animates in Chromium.
+   Firefox and Safari will show a static label. The cross-browser
+   fix (stacked spans + opacity) is at the bottom of this file,
+   commented out — see the note there for the required HTML change.
+   ============================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 
+:root {
+  --bg: #1a1a1a;
+  --glow-soft:   rgba(0, 191, 255, 0.5);
+  --glow-strong: rgba(0, 191, 255, 0.7);
+}
+
+* { box-sizing: border-box; }
+
 body {
-  background-color: #1a1a1a;
-  background-size: cover;
-  font-family: "Orbitron";
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--bg);
+  color: #fff;
+  font-family: "Orbitron", sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  width: 100vw;
+  overflow-x: hidden;
 }
+
+/* ---------- controls ---------- */
 
 .menu {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 20px;
+  padding: 0 12px;
 }
 
-.start-container {
-  margin-bottom: 20px;
-}
+.start-container { margin-bottom: 20px; }
 
 .neumorphic-btn {
   background: #2c2c2c;
@@ -30,215 +63,289 @@ body {
   color: #fff;
   padding: 10px 20px;
   font-size: 14px;
+  font-family: inherit;
   cursor: pointer;
+  transition: box-shadow 0.15s ease;
 }
 
 .neumorphic-btn:active {
   box-shadow: inset 5px 5px 10px #1a1a1a, inset -5px -5px 10px #444;
 }
 
+.neumorphic-btn:focus-visible {
+  outline: 2px solid #00bfff;
+  outline-offset: 3px;
+}
+
+/* ---------- breathing circle ---------- */
+
 .container {
   width: 300px;
   height: 300px;
+  max-width: 80vw;
+  max-height: 80vw;
+  aspect-ratio: 1;
   border-radius: 50%;
   position: relative;
-  animation: pulse 10s linear infinite, icyGlow 5s ease-in-out infinite;
-  box-shadow: 0 0 30px 10px rgba(0, 191, 255, 0.5), 0 0 60px 20px rgba(0, 191, 255, 0.3);
-  z-index: -1;
-  display: none; /* Initially hide the container */
+  /* Default = Box. Per-protocol overrides below. */
+  animation:
+    pulse-box 16s linear infinite,
+    icyGlow 5s ease-in-out infinite;
+  box-shadow: 0 0 30px 10px var(--glow-soft),
+              0 0 60px 20px rgba(0, 191, 255, 0.3);
+  display: none;
 }
 
-.container:after {
+/* text label */
+.container::after {
   content: 'breathe in';
   position: absolute;
-  color: rgba(255, 255, 255, .7);
-  top: calc(50% - 10px);
-  font-size: 24px;
-  font-family: Orbitron;
+  top: calc(50% - 14px);
+  left: 0;
   width: 100%;
-  vertical-align: middle;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
   text-align: center;
-  animation: text-478 10s linear infinite;
+  text-transform: lowercase;
+  animation: text-box 16s linear infinite;
 }
 
-.container:before {
+/* rotating dot indicator */
+.container::before {
   content: '';
-  width: 16px;
-  height: 50%;
   position: absolute;
-  display: block;
   top: 0;
   left: calc(50% - 8px);
-  z-index: 999;
+  width: 16px;
+  height: 50%;
+  z-index: 2;
   background-image: radial-gradient(
     circle at top center,
     #6080c8 0%,
     #6080c8 8px,
-    transparent 8px,
-    transparent 100%
+    transparent 8px
   );
-  animation: rotate-478 10s linear infinite;
+  animation: rotate-box 16s linear infinite;
   transform-origin: center bottom;
 }
 
 .circle {
-  width: 90%;
-  height: 90%;
-  border-radius: 50%;
   position: absolute;
   top: 5%;
   left: 5%;
-  background: radial-gradient(circle at center, #00cfff 20%, #00aaff 40%, #0080ff 60%, transparent 70%);
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    #00cfff 20%,
+    #00aaff 40%,
+    #0080ff 60%,
+    transparent 70%
+  );
   animation: icyGlow 5s ease-in-out infinite;
-  background-clip: padding-box;
 }
 
-/* 4-7-8 Breathing Styles */
-body.478 .container:after {
-  animation: text-478 10s linear infinite;
+.circle2 {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
 }
 
-body.478 .container:before {
-  animation: rotate-478 10s linear infinite;
+/* ---------- protocol: 4-7-8 (inhale 4s / hold 7s / exhale 8s = 19s) ---------- */
+
+body.b478 .container {
+  animation:
+    pulse-b478 19s linear infinite,
+    icyGlow 5s ease-in-out infinite;
+}
+body.b478 .container::after  { animation: text-b478   19s linear infinite; }
+body.b478 .container::before { animation: rotate-b478 19s linear infinite; }
+
+@keyframes pulse-b478 {
+  0%   { transform: scale(0.6); }
+  21%  { transform: scale(1); }
+  58%  { transform: scale(1); }
+  100% { transform: scale(0.6); }
 }
 
-@keyframes text-478 {
-  0% {
-    content: 'breathe in';
-  }
-  35% {
-    content: 'hold';
-  }
-  36% {
-    content: 'breathe out';
-  }
-  100% {
-    content: 'hold';
-  }
+@keyframes text-b478 {
+  0%    { content: 'breathe in'; }
+  20.9% { content: 'breathe in'; }
+  21%   { content: 'hold'; }
+  57.9% { content: 'hold'; }
+  58%   { content: 'breathe out'; }
+  100%  { content: 'breathe out'; }
 }
 
-@keyframes rotate-478 {
-  0% {
-    transform: rotate(0deg);
-  }
-  35% {
-    transform: rotate(90deg);
-  }
-  75% {
-    transform: rotate(270deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+@keyframes rotate-b478 {
+  0%   { transform: rotate(0deg); }
+  21%  { transform: rotate(90deg); }
+  58%  { transform: rotate(90deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Box Breathing Styles */
-body.box .container:after {
-  animation: text-box 16s linear infinite;
-}
+/* ---------- protocol: Box (4s inhale / 4s hold / 4s exhale / 4s hold = 16s) ---------- */
 
-body.box .container:before {
-  animation: rotate-box 16s linear infinite;
+body.box .container {
+  animation:
+    pulse-box 16s linear infinite,
+    icyGlow 5s ease-in-out infinite;
+}
+body.box .container::after  { animation: text-box   16s linear infinite; }
+body.box .container::before { animation: rotate-box 16s linear infinite; }
+
+@keyframes pulse-box {
+  0%   { transform: scale(0.6); }
+  25%  { transform: scale(1); }
+  50%  { transform: scale(1); }
+  75%  { transform: scale(0.6); }
+  100% { transform: scale(0.6); }
 }
 
 @keyframes text-box {
-  0%, 25% {
-    content: 'breathe in';
-  }
-  26%, 50% {
-    content: 'hold';
-  }
-  51%, 75% {
-    content: 'breathe out';
-  }
-  76%, 100% {
-    content: 'hold';
-  }
+  0%    { content: 'breathe in'; }
+  24.9% { content: 'breathe in'; }
+  25%   { content: 'hold'; }
+  49.9% { content: 'hold'; }
+  50%   { content: 'breathe out'; }
+  74.9% { content: 'breathe out'; }
+  75%   { content: 'hold'; }
+  100%  { content: 'hold'; }
 }
 
 @keyframes rotate-box {
-  0% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(90deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  75% {
-    transform: rotate(270deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(90deg); }
+  50%  { transform: rotate(180deg); }
+  75%  { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Alternate Nostril Breathing Styles */
-body.alternateNostril .container:after {
-  animation: text-alternateNostril 16s linear infinite;
-}
+/* ---------- protocol: Alternate Nostril (4 x 4s = 16s) ---------- */
 
-body.alternateNostril .container:before {
-  animation: rotate-alternateNostril 16s linear infinite;
+body.alternateNostril .container {
+  animation:
+    pulse-alternate 16s linear infinite,
+    icyGlow 5s ease-in-out infinite;
+}
+body.alternateNostril .container::after  { animation: text-alternateNostril   16s linear infinite; }
+body.alternateNostril .container::before { animation: rotate-alternateNostril 16s linear infinite; }
+
+@keyframes pulse-alternate {
+  0%   { transform: scale(0.6); }
+  25%  { transform: scale(1); }
+  50%  { transform: scale(1); }
+  75%  { transform: scale(0.6); }
+  100% { transform: scale(0.6); }
 }
 
 @keyframes text-alternateNostril {
-  0%, 25% {
-    content: 'inhale left';
-  }
-  26%, 50% {
-    content: 'exhale right';
-  }
-  51%, 75% {
-    content: 'inhale right';
-  }
-  76%, 100% {
-    content: 'exhale left';
-  }
+  0%    { content: 'inhale left'; }
+  24.9% { content: 'inhale left'; }
+  25%   { content: 'exhale right'; }
+  49.9% { content: 'exhale right'; }
+  50%   { content: 'inhale right'; }
+  74.9% { content: 'inhale right'; }
+  75%   { content: 'exhale left'; }
+  100%  { content: 'exhale left'; }
 }
 
 @keyframes rotate-alternateNostril {
-  0% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(90deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  75% {
-    transform: rotate(270deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(90deg); }
+  50%  { transform: rotate(180deg); }
+  75%  { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(.6);
-  }
-  25% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1);
-  }
-  75% {
-    transform: scale(.6);
-  }
-  100% {
-    transform: scale(.6);
-  }
-}
+/* ---------- shared glow ---------- */
 
 @keyframes icyGlow {
   0%, 100% {
-    box-shadow: 0 0 30px 10px rgba(0, 191, 255, 0.5), 0 0 60px 20px rgba(0, 191, 255, 0.3);
+    box-shadow: 0 0 30px 10px var(--glow-soft),
+                0 0 60px 20px rgba(0, 191, 255, 0.3);
   }
   50% {
-    box-shadow: 0 0 60px 20px rgba(0, 191, 255, 0.7), 0 0 90px 30px rgba(0, 191, 255, 0.5);
+    box-shadow: 0 0 60px 20px var(--glow-strong),
+                0 0 90px 30px rgba(0, 191, 255, 0.5);
   }
 }
+
+/* ---------- accessibility ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .container,
+  .container::before,
+  .container::after,
+  .circle {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .container::after { content: 'breathe'; }
+}
+
+/* ============================================================
+   OPTIONAL — cross-browser text animation
+   ------------------------------------------------------------
+   The `content` keyframes above only animate in Chromium. To make
+   the "breathe in / hold / breathe out" label work in Firefox and
+   Safari, replace the `.container::after { content: ... }` rule
+   with three stacked spans inside .container:
+
+     <div class="container">
+       <span class="phase phase-in">breathe in</span>
+       <span class="phase phase-hold">hold</span>
+       <span class="phase phase-out">breathe out</span>
+       <div class="circle"></div>
+       <div class="circle2"></div>
+     </div>
+
+   Then use this CSS instead of the content keyframes:
+
+   .phase {
+     position: absolute;
+     top: calc(50% - 14px);
+     left: 0;
+     width: 100%;
+     text-align: center;
+     font-size: 24px;
+     color: rgba(255, 255, 255, 0.85);
+     opacity: 0;
+   }
+
+   body.b478 .phase-in   { animation: phase-in-b478   19s linear infinite; }
+   body.b478 .phase-hold { animation: phase-hold-b478 19s linear infinite; }
+   body.b478 .phase-out  { animation: phase-out-b478  19s linear infinite; }
+
+   @keyframes phase-in-b478 {
+     0%, 20.9% { opacity: 1; }
+     21%, 100% { opacity: 0; }
+   }
+   @keyframes phase-hold-b478 {
+     0%, 20.9% { opacity: 0; }
+     21%, 57.9% { opacity: 1; }
+     58%, 100%  { opacity: 0; }
+   }
+   @keyframes phase-out-b478 {
+     0%, 57.9%  { opacity: 0; }
+     58%, 100%  { opacity: 1; }
+   }
+
+   Repeat the pattern for .box and .alternateNostril using the
+   percentages from text-box / text-alternateNostril above.
+
+   This is the correct long-term fix; the content-animation version
+   is a Chromium-only shortcut that should not ship.
+   ============================================================ */

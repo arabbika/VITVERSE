@@ -4,134 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vitverse</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
-    <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/VITVERSELOGO-1.png" alt="VITVERSE Logo" class="logo-image">
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }).catch(function(error) {
-                console.log('ServiceWorker registration failed: ', error);
-            });
-        }
-
-        function showChildButtons(category) {
-            document.querySelectorAll('.child-buttons').forEach(div => {
-                div.style.display = 'none';
-            });
-            document.querySelector(`#${category}`).style.display = 'flex';
-        }
-    </script>
-<script>
-        function navigateToPage(page) {
-            window.location.href = page;
-        }
-    </script>
+    <link rel="stylesheet" href="companion.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1a">
 </head>
 <body>
     <div class="wrapper">
-      <header>
-          <div class="top-buttons">
-                <button class="neumorphic-button breathewell" onclick="navigateToPage('breathewell.html')" id="breathewell-btn">
-                    <i class="fa-solid fa-wind"></i>
-                    <span>BreatheWell</span>
+        <!-- HEADER -->
+        <header>
+            <div class="top-buttons">
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')">
+                    <i class="fa-solid fa-wind"></i><span>BreatheWell</span>
                 </button>
-                <button class="neumorphic-button chronozen" onclick="navigateToPage('chronozen.html')" id="chronozen-btn">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span>ChronoZen</span>
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('chronozen.html')">
+                    <i class="fa-solid fa-calendar"></i><span>ChronoZen</span>
                 </button>
-                <button class="neumorphic-button dreamweaver" onclick="navigateToPage('dreamweaver.html')" id="dreamweaver-btn">
-                    <i class="fa-solid fa-lightbulb"></i>
-                    <span>Dreamweaver</span>
+                <button type="button" class="neumorphic-button" onclick="alert('Dreamweaver coming soon')">
+                    <i class="fa-solid fa-lightbulb"></i><span>Dreamweaver</span>
                 </button>
-                <button class="neumorphic-button soulsync" onclick="navigateToPage('soulsync.html')" id="soulsync-btn">
-                    <i class="fa-solid fa-heart"></i>
-                    <span>SoulSync</span>
+                <button type="button" class="neumorphic-button" onclick="alert('SoulSync coming soon')">
+                    <i class="fa-solid fa-heart"></i><span>SoulSync</span>
                 </button>
             </div>
-    </header>
-    <div class="container">
-        <div id="breathewell" class="child-buttons breathewell">
-            <!-- Add child buttons for BreatheWell here -->
+        </header>
+
+        <!-- COMPANION STAGE -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin: 30px 0;">
+            <!-- Memory Speech Bubble -->
+            <div id="companion-memory" class="companion-memory">Hi! I'm your companion.</div>
+            
+            <!-- Neumorphic Circle Stage -->
+            <div style="background:#222; border-radius:50%; padding:40px; box-shadow:inset 6px 6px 12px #111, inset -6px -6px 12px #333;">
+                <svg class="companion" id="companion" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+                            <stop offset="0%" stop-color="var(--body-inner)"/>
+                            <stop offset="100%" stop-color="var(--body-outer)"/>
+                        </radialGradient>
+                    </defs>
+                    
+                    <g class="bob-group">
+                        <!-- COSMETICS (Unlockables) -->
+                        <ellipse class="cosmetic halo" cx="100" cy="42" rx="35" ry="10" fill="none" stroke="#ffd700" stroke-width="4" opacity="0.8" />
+                        
+                        <path class="cosmetic sprout" d="M 100 58 Q 95 40 80 45 Q 95 50 100 58 Z" fill="#4ade80" />
+                        <path class="cosmetic sprout" d="M 100 58 Q 105 40 120 45 Q 105 50 100 58 Z" fill="#22c55e" />
+
+                        <path class="cosmetic scarf" d="M 50 140 Q 100 160 150 140 L 150 155 Q 100 175 50 155 Z" fill="#ef4444" />
+                        <path class="cosmetic scarf" d="M 135 145 L 145 180 L 130 180 Z" fill="#dc2626" />
+
+                        <path class="cosmetic crown" d="M 75 55 L 85 25 L 100 45 L 115 25 L 125 55 Z" fill="#fbbf24" stroke="#b45309" stroke-width="2" stroke-linejoin="round" />
+                        
+                        <!-- BODY & FACE -->
+                        <g class="breath-group">
+                            <ellipse class="body" cx="100" cy="115" rx="65" ry="60" fill="url(#bodyGrad)"/>
+                            <g class="face">
+                                <ellipse class="eye" cx="80" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+                                <ellipse class="eye" cx="120" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+                                <path class="mouth mouth-radiant" d="M 82 128 Q 100 145 118 128" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+                                <path class="mouth mouth-content" d="M 85 130 Q 100 138 115 130" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+                                <path class="mouth mouth-settled" d="M 88 132 L 112 132" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+                                <path class="mouth mouth-quiet" d="M 88 133 Q 100 131 112 133" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+                                <path class="mouth mouth-low" d="M 85 137 Q 100 127 115 137" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+                            </g>
+                            <g class="cheeks">
+                                <circle cx="66" cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
+                                <circle cx="134" cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+            </div>
         </div>
-        <div id="chronozen" class="child-buttons chronozen">
-            <!-- Add child buttons for ChronoZen here -->
+
+        <!-- QUICK LOG -->
+        <div style="text-align:center; margin-bottom: 40px;">
+            <p style="font-size:12px; color:#888; margin-bottom:12px; font-family:monospace; letter-spacing:1px;">QUICK LOG</p>
+            <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="neumorphic-button" onclick="emit('MOOD_CHECKIN', {value: 5})">😄 Great</button>
+                <button type="button" class="neumorphic-button" onclick="emit('MOOD_CHECKIN', {value: 3})">😐 Okay</button>
+                <button type="button" class="neumorphic-button" onclick="emit('MOOD_CHECKIN', {value: 1})">😔 Low</button>
+                <button type="button" class="neumorphic-button" onclick="emit('SLEEP_LOGGED', {hours: 7.5, quality: 4})">🛌 Slept 7.5h</button>
+                <button type="button" class="neumorphic-button" onclick="emit('EXERCISE_LOGGED')">🏃 Exercise</button>
+            </div>
         </div>
-        <div id="dreamweaver" class="child-buttons dreamweaver">
-            <!-- Add child buttons for Dreamweaver here -->
+
+        <!-- MODULES -->
+        <div class="container">
+            <div id="wellbeing" class="child-buttons wellbeing active">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dumbbell"></i><span>Skills</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-brain"></i><span>Mindfulness</span></button>
+                <button type="button" class="neumorphic-button" onclick="emit('REFLECTION_WRITTEN')"><i class="fa-solid fa-book"></i><span>Reflection</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-smile"></i><span>Moods</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-running"></i><span>Exercise</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-utensils"></i><span>Nutrition</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-bed"></i><span>Sleep</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dollar-sign"></i><span>Financial</span></button>
+            </div>
+            <div id="productivity" class="child-buttons productivity">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-list"></i><span>Tasks</span></button>
+            </div>
+            <div id="connections" class="child-buttons connections">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-handshake"></i><span>Interaction</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-comments"></i><span>Communication</span></button>
+            </div>
+            <div id="relaxation" class="child-buttons relaxation">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-gamepad"></i><span>Games</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-music"></i><span>Music</span></button>
+            </div>
         </div>
-        <div id="soulsync" class="child-buttons soulsync">
-            <!-- Add child buttons for SoulSync here -->
-        </div>
-        <div id="wellbeing" class="child-buttons wellbeing">
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-dumbbell"></i>
-                <span>Skills</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-brain"></i>
-                <span>Mindfulness</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-book"></i>
-                <span>Reflection</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-smile"></i>
-                <span>Moods</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-running"></i>
-                <span>Exercise</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-utensils"></i>
-                <span>Nutrition</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-bed"></i>
-                <span>Sleep</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-dollar-sign"></i>
-                <span>Financial</span>
-            </button>
-        </div>
-        <div id="productivity" class="child-buttons productivity">
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-list"></i>
-                <span>Tasks</span>
-            </button>
-        </div>
-        <div id="connections" class="child-buttons connections">
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-handshake"></i>
-                <span>Interaction</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-comments"></i>
-                <span>Communication</span>
-            </button>
-        </div>
-        <div id="relaxation" class="child-buttons relaxation">
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-gamepad"></i>
-                <span>Games</span>
-            </button>
-            <button class="neumorphic-button">
-                <i class="fa-solid fa-music"></i>
-                <span>Music</span>
-            </button>
-        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <button type="button" class="footer-button wellbeing" onclick="showChildButtons('wellbeing')" aria-expanded="true">WellBeing</button>
+            <button type="button" class="footer-button productivity" onclick="showChildButtons('productivity')" aria-expanded="false">Productivity</button>
+            <button type="button" class="footer-button connections" onclick="showChildButtons('connections')" aria-expanded="false">Connections</button>
+            <button type="button" class="footer-button relaxation" onclick="showChildButtons('relaxation')" aria-expanded="false">Relaxation</button>
+        </footer>
     </div>
-    <footer>
-        <button class="footer-button wellbeing" onclick="showChildButtons('wellbeing')">WellBeing</button>
-        <button class="footer-button productivity" onclick="showChildButtons('productivity')">Productivity</button>
-        <button class="footer-button connections" onclick="showChildButtons('connections')">Connections</button>
-        <button class="footer-button relaxation" onclick="showChildButtons('relaxation')">Relaxation</button>
-    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="companion.js"></script>
+    <script src="companion-ui.js"></script>
+    <script>
+        // Navigation & Tab logic
+        function navigateToPage(page) { window.location.href = page; }
+        
+        function showChildButtons(category) {
+            document.querySelectorAll('.child-buttons').forEach(div => {
+                div.style.display = 'none'; 
+                div.classList.remove('active');
+            });
+            const target = document.getElementById(category);
+            if (target) { 
+                target.style.display = 'flex'; 
+                target.classList.add('active'); 
+            }
+            
+            document.querySelectorAll('.footer-button').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+            const trigger = document.querySelector(`.footer-button.${category}`);
+            if (trigger) trigger.setAttribute('aria-expanded', 'true');
+        }
+
+        // Companion Event Logic
+        const uuid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+        function emit(type, payload) {
+            Companion.emit({ id: uuid(), type, payload });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set default tab
+            showChildButtons('wellbeing');
+            
+            // Mount the companion to the SVG element
+            CompanionUI.mount(document.getElementById('companion'));
+        });
+    </script>
 </body>
 </html>

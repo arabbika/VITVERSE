@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Companion — Dev Demo</title>
+<link rel="stylesheet" href="companion.css">
+<style>
+  :root { color-scheme: dark; }
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: system-ui, sans-serif;
+    margin: 0; min-height: 100dvh;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 24px; gap: 24px;
+  }
+  .stage {
+    background: #222;
+    border-radius: 50%;
+    padding: 40px;
+    box-shadow: inset 6px 6px 12px #111, inset -6px -6px 12px #333;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; max-width: 600px; justify-content: center; }
+  button {
+    background: #2c2c2c; color: #eee; border: none; border-radius: 12px;
+    padding: 10px 16px; font-size: 13px; cursor: pointer;
+    box-shadow: 4px 4px 8px #111, -4px -4px 8px #383838;
+  }
+  button:active { box-shadow: inset 4px 4px 8px #111, inset -4px -4px 8px #383838; }
+  button.dev { background: #3a2a2a; }
+  #debug {
+    font-family: ui-monospace, monospace; font-size: 12px; color: #8ab;
+    background: #151515; padding: 12px 16px; border-radius: 8px;
+    max-width: 600px; white-space: pre-wrap; word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <svg class="companion" id="companion" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+        <stop offset="0%"   stop-color="var(--body-inner)"/>
+        <stop offset="100%" stop-color="var(--body-outer)"/>
+      </radialGradient>
+    </defs>
+    <g class="bob-group">
+      <g class="breath-group">
+        <ellipse class="body" cx="100" cy="115" rx="65" ry="60" fill="url(#bodyGrad)"/>
+        <g class="face">
+          <ellipse class="eye" cx="80"  cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+          <ellipse class="eye" cx="120" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+          <path class="mouth mouth-radiant" d="M 82 128 Q 100 145 118 128" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+          <path class="mouth mouth-content" d="M 85 130 Q 100 138 115 130" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+          <path class="mouth mouth-settled" d="M 88 132 L 112 132"        fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+          <path class="mouth mouth-quiet"   d="M 88 133 Q 100 131 112 133" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+          <path class="mouth mouth-low"     d="M 85 137 Q 100 127 115 137" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g class="cheeks">
+          <circle cx="66"  cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
+          <circle cx="134" cy="120" r="7" fill="#ff8fb8" opacity="0.6"/>
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="controls">
+  <button onclick="emit('BREATHE_COMPLETE', { protocol: 'b478' })">Breathe 4-7-8</button>
+  <button onclick="emit('BREATHE_COMPLETE', { protocol: 'box' })">Breathe Box</button>
+  <button onclick="emit('TASK_COMPLETE')">Task done</button>
+  <button onclick="emit('SLEEP_LOGGED', { hours: 7.5, quality: 4 })">Sleep 7.5h</button>
+  <button onclick="emit('MOOD_CHECKIN', { value: 5 })">Mood 5</button>
+  <button onclick="emit('MOOD_CHECKIN', { value: 2 })">Mood 2</button>
+  <button onclick="emit('REFLECTION_WRITTEN')">Reflection</button>
+  <button onclick="emit('EXERCISE_LOGGED')">Exercise</button>
+</div>
+
+<div class="controls">
+  <button class="dev" onclick="Companion._devSetLastTick(3 * 86400e3)">Simulate 3-day gap</button>
+  <button class="dev" onclick="Companion._devSetLastTick(30 * 86400e3)">Simulate 30-day gap</button>
+  <button class="dev" onclick="Companion.reset(); refresh()">Reset</button>
+  <button class="dev" onclick="Companion._selfTest()">Run self-test</button>
+</div>
+
+<div id="debug"></div>
+
+<script src="companion.js"></script>
+<script src="companion-ui.js"></script>
+<script>
+  const uuid = () => (crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36));
+
+  function emit(type, payload) {
+    Companion.emit({ id: uuid(), type, payload });
+  }
+
+  function refresh() {
+  const raw = Companion.get();
+  const v   = Companion.view();
+  document.getElementById('debug').textContent =
+    'VIEW (decayed — what the blob shows):\n' +
+    JSON.stringify(v, null, 2) +
+    '\n\nRAW (stored — undecayed):\n' +
+    JSON.stringify(raw, null, 2);
+  }
+
+  CompanionUI.mount(document.getElementById('companion'));
+  Companion.subscribe(refresh);
+  refresh();
+  Companion._selfTest();
+</script>
+</body>
+</html>

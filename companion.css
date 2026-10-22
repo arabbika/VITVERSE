@@ -1,0 +1,120 @@
+/* --- Base Companion --- */
+.companion {
+  width: 200px;
+  height: 200px;
+  display: block;
+  --breath-duration: 6s;
+  --bob-duration: 2.4s;
+  --glow: 3px;
+  --body-inner: #7fd8ff;
+  --body-outer: #3a8eef;
+  filter: drop-shadow(0 0 var(--glow) rgba(120, 200, 255, 0.55));
+  transition: filter 0.8s ease;
+}
+
+.companion[data-mood="settled"] { --body-inner: #8ec8e8; --body-outer: #5a8fc8; }
+.companion[data-mood="quiet"]   { --body-inner: #9aa8c4; --body-outer: #6a7a9e; }
+.companion[data-mood="low"]     { --body-inner: #a8b0c4; --body-outer: #78829e; }
+.companion[data-mood="radiant"] { --body-inner: #a8e8ff; --body-outer: #4ab0ff; }
+
+/* --- Motion Layers --- */
+.companion .bob-group {
+  animation: companion-bob var(--bob-duration) ease-in-out infinite;
+  transform-origin: 100px 170px;
+}
+.companion .breath-group {
+  animation: companion-breathe var(--breath-duration) ease-in-out infinite;
+  transform-origin: 100px 115px;
+}
+
+@keyframes companion-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes companion-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+/* --- Eyes & Mouth --- */
+.companion .eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.6s ease;
+}
+.companion[data-mood="radiant"] .eye { transform: scaleY(1.15); }
+.companion[data-mood="content"] .eye { transform: scaleY(1);    }
+.companion[data-mood="settled"] .eye { transform: scaleY(0.65); }
+.companion[data-mood="quiet"]   .eye { transform: scaleY(0.45); }
+.companion[data-mood="low"]     .eye { transform: scaleY(0.35) translateY(2px); }
+
+.companion .mouth { display: none; }
+.companion[data-mood="radiant"] .mouth-radiant { display: inline; }
+.companion[data-mood="content"] .mouth-content { display: inline; }
+.companion[data-mood="settled"] .mouth-settled { display: inline; }
+.companion[data-mood="quiet"]   .mouth-quiet   { display: inline; }
+.companion[data-mood="low"]     .mouth-low     { display: inline; }
+
+.companion .cheeks {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.companion[data-mood="radiant"] .cheeks { opacity: 1; }
+
+/* --- Resting State --- */
+.companion.is-resting .eye        { transform: scaleY(0.08) !important; }
+.companion.is-resting .mouth      { display: none !important; }
+.companion.is-resting .mouth-settled { display: inline !important; }
+.companion.is-resting .bob-group  { animation-duration: 6s; }
+.companion.is-resting .breath-group { animation-duration: 10s; }
+.companion.is-resting             { filter: drop-shadow(0 0 4px rgba(120, 160, 255, 0.35)); }
+
+/* --- Memory Speech Bubble --- */
+.companion-memory {
+  text-align: center;
+  font-size: 14px;
+  color: #a8e8ff;
+  min-height: 44px;
+  max-width: 280px;
+  margin: 0 auto 20px auto;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  font-style: italic;
+  line-height: 1.4;
+  background: rgba(0, 191, 255, 0.1);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(0, 191, 255, 0.2);
+}
+
+/* --- Cosmetics (Hidden by default) --- */
+.cosmetic { display: none; }
+
+/* Level 1: Halo */
+.companion[data-level="1"] .halo,
+.companion[data-level="2"] .halo,
+.companion[data-level="3"] .halo,
+.companion[data-level="4"] .halo { display: block; }
+
+/* Level 2: Sprout */
+.companion[data-level="2"] .sprout,
+.companion[data-level="3"] .sprout,
+.companion[data-level="4"] .sprout { display: block; }
+
+/* Level 3: Scarf */
+.companion[data-level="3"] .scarf,
+.companion[data-level="4"] .scarf { display: block; }
+
+/* Level 4: Crown */
+.companion[data-level="4"] .crown { display: block; }
+
+/* Cosmetic Animations */
+@keyframes float-halo {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.companion .halo { 
+  animation: float-halo 3s ease-in-out infinite; 
+  transform-origin: center; 
+}

@@ -24,7 +24,7 @@
     <img src="https://souk.ummahza.co.za/wp-content/uploads/2024/06/BREATHEWELLLOGO.png" alt="BREATHEWELL Logo" style="width: 150px; margin-bottom: 20px;">
 
     <div class="menu">
-        <button class="neumorphic-btn" onclick="selectBreathing('478')">4-7-8 Breathing</button>
+        <button class="neumorphic-btn" onclick="selectBreathing('b478')">4-7-8 Breathing</button>
         <button class="neumorphic-btn" onclick="selectBreathing('box')">Box Breathing</button>
         <button class="neumorphic-btn" onclick="selectBreathing('alternateNostril')">Alternate Nostril Breathing</button>
     </div>
@@ -39,17 +39,47 @@
     </div>
 
     <script>
+      let cycleTimer = null;
+      const CYCLE_MS = { b478: 19000, box: 16000, alternateNostril: 16000 };
+
+      function stopBreathing() {
+          if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+      }
+
       function selectBreathing(type) {
-          document.body.className = type;
-          document.getElementById('start-button').style.display = 'block'; // Show the start button
-          document.querySelector('.container').style.display = 'none'; // Hide the container initially
+          stopBreathing();
+          document.body.classList.remove('b478', 'box', 'alternateNostril');
+          document.body.classList.add(type);
+          document.getElementById('start-button').style.display = 'block';
+          document.querySelector('.container').style.display = 'none';
       }
 
       function startBreathing() {
-          document.querySelector('.container').style.display = 'block'; // Show the container when start is clicked
-          document.getElementById('start-button').style.display = 'none'; // Hide the start button
+          stopBreathing();
+          document.querySelector('.container').style.display = 'block';
+          document.getElementById('start-button').style.display = 'none';
+
+          const protocol =
+              document.body.classList.contains('b478')             ? 'b478' :
+              document.body.classList.contains('box')              ? 'box'    :
+              document.body.classList.contains('alternateNostril') ? 'alternateNostril' : 'b478';
+
+          cycleTimer = setInterval(() => {
+              if (window.Companion) {
+                  Companion.emit({
+                      id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
+                      type: 'BREATHE_COMPLETE',
+                      payload: { protocol },
+                  });
+              }
+          }, CYCLE_MS[protocol]);
       }
+
+      document.addEventListener('visibilitychange', () => {
+          if (document.hidden) stopBreathing();
+      });
     </script>
 
+    <script src="companion.js"></script>
 </body>
 </html>
