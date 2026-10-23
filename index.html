@@ -5,18 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vitverse — Your Inner Sanctuary</title>
     
-    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="companion.css">
-    
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
-    <!-- Service Worker with Auto-Reload -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -47,7 +41,7 @@
             
             <!-- Memory / Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory" onclick="gotoQuest()">
-                <span>Hi! Tell me about your day or ask for a quest.</span>
+                <span>Welcome back. What's on your mind?</span>
             </div>
             
             <!-- THE SANCTUARY -->
@@ -61,7 +55,7 @@
                 <!-- Dynamic Aura Ring -->
                 <div class="aura-ring"></div>
                 
-                <!-- Decor Items (Hidden until equipped) -->
+                <!-- Decor Items -->
                 <svg class="decor decor-plant" style="bottom: 10%; left: 10%; width: 60px; height: 80px;" viewBox="0 0 60 80">
                     <path d="M 30 80 L 30 40" stroke="#2e7d32" stroke-width="4"/>
                     <circle cx="30" cy="40" r="20" fill="#4caf50" opacity="0.8"/>
@@ -87,7 +81,6 @@
                         </radialGradient>
                     </defs>
                     <g class="bob-group">
-                        <!-- Wearables -->
                         <ellipse class="cosmetic halo" cx="100" cy="42" rx="35" ry="10" fill="none" stroke="#ffd700" stroke-width="4" opacity="0.8" />
                         <path class="cosmetic sprout" d="M 100 58 Q 95 40 80 45 Q 95 50 100 58 Z" fill="#4ade80" />
                         <path class="cosmetic sprout" d="M 100 58 Q 105 40 120 45 Q 105 50 100 58 Z" fill="#22c55e" />
@@ -117,7 +110,7 @@
                 </svg>
             </div>
 
-            <!-- AI Chat Bar with Tactician/Confidant Modes -->
+            <!-- AI Chat Bar -->
             <div class="ai-chat-wrapper">
                 <div class="mode-toggles">
                     <button id="mode-tactician" class="mode-btn active" onclick="AILogger.setMode('aura')">
@@ -129,7 +122,7 @@
                 </div>
                 
                 <div class="ai-chat-container">
-                    <input type="text" id="ai-input" class="ai-input" placeholder="e.g. Slept 8 hours, feeling great..." onkeypress="if(event.key === 'Enter') window.AILogger.processText(this.value)">
+                    <input type="text" id="ai-input" class="ai-input" placeholder="Tell me about your day..." onkeypress="if(event.key === 'Enter') window.AILogger.processText(this.value)">
                     <button type="button" class="ai-mic-btn" id="ai-mic-btn" onclick="window.AILogger.toggleMic()"><i class="fa-solid fa-microphone"></i></button>
                     <button type="button" class="ai-mic-btn" style="color:#000; background:var(--accent);" onclick="window.AILogger.processText(document.getElementById('ai-input').value)"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
@@ -146,9 +139,6 @@
                 </div>
             </div>
 
-            <!-- Guild Card (Shared Streak) -->
-            <div class="guild-card" id="guild-card"></div>
-
             <!-- Inventory -->
             <div class="inv-tabs">
                 <button class="inv-tab active" onclick="switchTab('wearables')" id="tab-wearables">Wearables</button>
@@ -159,7 +149,6 @@
         </main>
     </div>
 
-    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -167,31 +156,20 @@
     <script src="audio.js"></script>
     
     <script>
-        // --- Navigation & UI Logic ---
         function navigateToPage(page) { window.location.href = page; }
         let currentQuestLink = null;
         let currentInvTab = 'wearables';
 
-        const uuid = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+        function gotoQuest() { if (currentQuestLink) window.location.href = currentQuestLink; }
 
-        function gotoQuest() { 
-            if (currentQuestLink) window.location.href = currentQuestLink; 
-        }
-
-        // --- Pet the Companion ---
         let petsToday = 0;
         function petCompanion() {
             const svg = document.getElementById('companion');
             svg.style.transform = 'scale(0.85) translateY(-20px)';
             setTimeout(() => { svg.style.transform = 'scale(1) translateY(0)'; }, 150);
-            
-            if (window.Juice) { 
-                Juice.playPetSound(); 
-                Juice.vibrate(30); 
-            }
+            if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
-        // --- Tab Switching ---
         function switchTab(tab) {
             currentInvTab = tab;
             document.getElementById('tab-wearables').classList.toggle('active', tab === 'wearables');
@@ -199,32 +177,19 @@
             updateDashboard(Companion.view());
         }
 
-        function equipWearable(item) { 
-            if (item) Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: item } }); 
-        }
-        
-        function toggleDecor(item) { 
-            if (item) Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } }); 
-        }
-        
-        function linkGuild() {
-            const code = prompt("Enter a Guild Code (or leave blank to generate one):");
-            if (code === null) return;
-            const finalCode = code.trim() || Math.random().toString(36).substring(2, 8).toUpperCase();
-            Companion.emit({ type: 'LINK_GUILD', payload: { code: finalCode } });
-        }
+        function equipWearable(item) { if (item) Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: item } }); }
+        function toggleDecor(item) { if (item) Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } }); }
 
-        // --- Main Dashboard Update ---
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
-            // 1. HUD
+            // HUD
             document.getElementById('hud-level').textContent = view.level;
             const progress = (view.xp / view.xpNeeded) * 100;
             document.getElementById('xp-bar-fill').style.width = `${progress}%`;
             document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
 
-            // 2. Quest Bubble (Only update if AI isn't showing a plan)
+            // Quest Bubble
             const bubble = document.getElementById('companion-memory');
             if (!bubble.classList.contains('is-expanded') && !bubble.innerHTML.includes('fa-spinner')) {
                 if (view.quest) {
@@ -233,32 +198,14 @@
                 }
             }
 
-            // 3. Guild Card
-            const guildCard = document.getElementById('guild-card');
-            if (view.guild && view.guild.code) {
-                const streak = view.guild.sharedStreak + (view.guild.partnerActive ? 1 : 0);
-                guildCard.innerHTML = `
-                    <div class="guild-title">Guild Linked: <span style="color:var(--accent)">${view.guild.code}</span></div>
-                    <div class="guild-streak">🔥 ${streak} Day Streak</div>
-                    <div style="font-size:11px; color:var(--text-muted);">Partner Active Today</div>
-                `;
-            } else {
-                guildCard.innerHTML = `
-                    <div class="guild-title">Play with a Friend</div>
-                    <div style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Link accounts to build a shared streak.</div>
-                    <button class="guild-btn" onclick="linkGuild()">Link / Create Guild</button>
-                `;
-            }
-
-            // 4. Update Sanctuary (Aura & Decor)
+            // Sanctuary Updates
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
             sanctuary.setAttribute('data-decor', view.equipped.decor.join(' '));
             
-            // 5. Inventory Rendering
+            // Inventory
             const invContainer = document.getElementById('inventory');
             invContainer.innerHTML = '';
-            
             if (currentInvTab === 'wearables') {
                 const items = ['halo', 'sprout', 'scarf', 'crown'];
                 items.forEach(item => {
@@ -286,24 +233,12 @@
             }
         }
 
-        // --- Initialize on Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Set default AI mode
             AILogger.setMode('aura');
-            
-            // Mount Companion & Start Particles
             CompanionUI.mount(document.getElementById('companion'));
-            
-            // Initial UI render
             updateDashboard(Companion.view());
-            
-            // Listen for state changes
             window.addEventListener('companion:update', (e) => updateDashboard(e.detail));
-            
-            // Spawn ambient room particles
-            if (window.Juice) {
-                setTimeout(() => Juice.initParticles(), 100);
-            }
+            if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
         });
     </script>
 </body>
