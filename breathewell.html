@@ -1,44 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="breathewell.css" />
-    <title>Breathe Well — Vitverse</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BreatheWell — Vitverse</title>
+    <link rel="stylesheet" href="breathewell.css">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f111a">
     <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered with scope:', registration.scope);
-        }).catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-      }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then((registration) => {
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            }).catch((error) => console.error('SW registration failed:', error));
+        }
     </script>
     <style>
-        /* Styling for the home link */
-        .logo-link {
-            display: inline-block;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .logo-link:active {
-            transform: scale(0.95);
-        }
-        .logo-link img {
-            width: 160px;
-            height: auto;
-            display: block;
-        }
+        .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s ease; }
+        .logo-link:active { transform: scale(0.95); }
+        .logo-link img { width: 160px; height: auto; display: block; }
     </style>
 </head>
-
 <body>
-    <!-- Clicking the logo takes you back to the hub -->
     <a href="index.html" class="logo-link" aria-label="Back to Vitverse">
         <img src="logo.png" alt="VITVERSE Logo">
     </a>
@@ -59,51 +48,46 @@
     </div>
 
     <script>
-      let cycleTimer = null;
-      // 4-7-8 is 19s (4+7+8), Box is 16s, Alternate is 16s
-      const CYCLE_MS = { b478: 19000, box: 16000, alternateNostril: 16000 };
+        let cycleTimer = null;
+        const CYCLE_MS = { b478: 19000, box: 16000, alternateNostril: 16000 };
 
-      function stopBreathing() {
-          if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
-      }
+        function stopBreathing() {
+            if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+        }
 
-      function selectBreathing(type) {
-          stopBreathing();
-          document.body.classList.remove('b478', 'box', 'alternateNostril');
-          document.body.classList.add(type);
-          document.getElementById('start-button').style.display = 'block';
-          document.querySelector('.container').style.display = 'none';
-      }
+        function selectBreathing(type) {
+            stopBreathing();
+            document.body.classList.remove('b478', 'box', 'alternateNostril');
+            document.body.classList.add(type);
+            document.getElementById('start-button').style.display = 'block';
+            document.querySelector('.container').style.display = 'none';
+        }
 
-      function startBreathing() {
-          stopBreathing();
-          document.querySelector('.container').style.display = 'block';
-          document.getElementById('start-button').style.display = 'none';
+        function startBreathing() {
+            stopBreathing();
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('start-button').style.display = 'none';
 
-          const protocol =
-              document.body.classList.contains('b478')             ? 'b478' :
-              document.body.classList.contains('box')              ? 'box'    :
-              document.body.classList.contains('alternateNostril') ? 'alternateNostril' : 'b478';
+            const protocol =
+                document.body.classList.contains('b478')             ? 'b478' :
+                document.body.classList.contains('box')              ? 'box'    :
+                document.body.classList.contains('alternateNostril') ? 'alternateNostril' : 'b478';
 
-          // Award one event per completed cycle to feed the companion
-          cycleTimer = setInterval(() => {
-              if (window.Companion) {
-                  Companion.emit({
-                      id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
-                      type: 'BREATHE_COMPLETE',
-                      payload: { protocol },
-                  });
-              }
-          }, CYCLE_MS[protocol]);
-      }
+            cycleTimer = setInterval(() => {
+                if (window.Companion) {
+                    Companion.emit({
+                        id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
+                        type: 'BREATHE_COMPLETE',
+                        payload: { protocol },
+                    });
+                }
+            }, CYCLE_MS[protocol]);
+        }
 
-      // Stop the timer if the user switches tabs so they don't farm points
-      document.addEventListener('visibilitychange', () => {
-          if (document.hidden) stopBreathing();
-      });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopBreathing();
+        });
     </script>
-
-    <!-- Load the companion engine -->
     <script src="companion.js"></script>
 </body>
 </html>
