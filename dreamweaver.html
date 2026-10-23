@@ -2,56 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dreamweaver — Vitverse</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="manifest.json">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f111a">
     <script src="companion.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then((registration) => {
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            }).catch((error) => console.error('SW registration failed:', error));
+        }
+    </script>
     <style>
-        body { background: #0f111a; } /* Deep night blue */
+        body { background: #0f111a; }
         .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s ease; }
         .logo-link:active { transform: scale(0.95); }
         .logo-image { width: 160px; height: auto; display: block; }
         
         .dream-card {
-            background: #1a1c29;
-            border-radius: 20px;
-            padding: 30px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: inset 6px 6px 12px #0a0b10, inset -6px -6px 12px #2a2e40;
-            text-align: center;
-            margin-bottom: 20px;
+            background: var(--bg-surface); border: 1px solid var(--border-glass);
+            border-radius: 24px; padding: 30px; width: 100%; max-width: 400px;
+            backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center; margin-bottom: 20px;
         }
-        h2 { color: #8ec8e8; margin-top: 0; font-size: 20px; }
-        .hours-display { font-size: 48px; color: #fff; margin: 20px 0; font-weight: bold; }
+        h2 { color: var(--accent); margin-top: 0; font-size: 20px; font-family: var(--font-display); letter-spacing: 1px;}
+        .hours-display { font-size: 48px; color: #fff; margin: 20px 0; font-weight: bold; font-family: var(--font-display); }
         
-        /* Custom Slider */
-        input[type=range] {
-            -webkit-appearance: none; width: 100%; background: transparent; margin-bottom: 30px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
-            background: #00bfff; cursor: pointer; box-shadow: 0 0 10px #00bfff; margin-top: -8px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 8px; cursor: pointer; background: #2a2e40; border-radius: 4px;
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin-bottom: 30px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 10px var(--accent-glow); margin-top: -8px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: rgba(0,0,0,0.4); border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
         
         .quality-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
         .q-btn {
-            background: #1a1c29; border: none; border-radius: 50%; width: 50px; height: 50px;
-            font-size: 24px; cursor: pointer; box-shadow: 4px 4px 8px #0a0b10, -4px -4px 8px #2a2e40;
-            transition: all 0.2s ease; opacity: 0.5;
+            background: rgba(0,0,0,0.3); border: 1px solid transparent; border-radius: 50%; width: 50px; height: 50px;
+            font-size: 24px; cursor: pointer; transition: all 0.2s ease; opacity: 0.5;
         }
-        .q-btn.selected { opacity: 1; box-shadow: inset 4px 4px 8px #0a0b10, inset -4px -4px 8px #2a2e40; transform: scale(1.1); }
+        .q-btn.selected { opacity: 1; border-color: var(--accent); background: rgba(0, 229, 255, 0.1); transform: scale(1.1); box-shadow: 0 0 15px var(--accent-glow); }
         
         .save-btn {
-            background: #00bfff; color: #000; border: none; padding: 15px 40px; border-radius: 30px;
+            background: var(--accent); color: #000; border: none; padding: 15px 40px; border-radius: 16px;
             font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
-            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transition: transform 0.2s ease;
+            box-shadow: 0 0 15px var(--accent-glow); transition: transform 0.2s ease;
         }
         .save-btn:active { transform: scale(0.95); }
     </style>
@@ -62,12 +62,12 @@
         
         <div class="dream-card">
             <h2>🌙 Dreamweaver</h2>
-            <p style="color: #888; font-size: 14px;">How long did you sleep?</p>
+            <p style="color: var(--text-muted); font-size: 14px;">How long did you sleep?</p>
             
             <div class="hours-display" id="hours-display">7.5h</div>
             <input type="range" id="sleep-slider" min="3" max="12" step="0.5" value="7.5">
             
-            <p style="color: #888; font-size: 14px; margin-top: 20px;">Sleep Quality</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">Sleep Quality</p>
             <div class="quality-group" id="quality-group">
                 <button type="button" class="q-btn" data-q="1">😫</button>
                 <button type="button" class="q-btn" data-q="2">😕</button>
@@ -81,20 +81,15 @@
     </div>
 
     <script>
-        let selectedQuality = 4; // Default to 4
+        let selectedQuality = 4;
         const slider = document.getElementById('sleep-slider');
         const display = document.getElementById('hours-display');
         const qButtons = document.querySelectorAll('.q-btn');
 
-        // Update hour display
-        slider.addEventListener('input', (e) => {
-            display.textContent = e.target.value + 'h';
-        });
+        slider.addEventListener('input', (e) => display.textContent = e.target.value + 'h');
 
-        // Handle Quality Selection
         qButtons.forEach(btn => {
             if (btn.dataset.q == selectedQuality) btn.classList.add('selected');
-            
             btn.addEventListener('click', () => {
                 qButtons.forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
@@ -104,8 +99,6 @@
 
         function saveSleep() {
             const hours = parseFloat(slider.value);
-            
-            // Feed the companion
             if (window.Companion) {
                 Companion.emit({
                     id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
@@ -113,13 +106,10 @@
                     payload: { hours: hours, quality: selectedQuality }
                 });
             }
-
-            // Visual feedback and redirect
             const btn = document.querySelector('.save-btn');
             btn.textContent = 'Saved! Returning...';
-            btn.style.background = '#4ade80'; // Green
-            
-            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+            btn.style.background = '#4ade80';
+            setTimeout(() => window.location.href = 'index.html', 1000);
         }
     </script>
 </body>
