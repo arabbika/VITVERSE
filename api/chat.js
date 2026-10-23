@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "grok-4.1-fast", // Updated to the current flagship model
+        model: "grok-4.3", // Using the current recommended model
         max_tokens: 800,
         messages: [
           {
