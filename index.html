@@ -23,69 +23,53 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
-            <!-- Quest Speech Bubble -->
+            <!-- AI Response / Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory" onclick="gotoQuest()">
-                <span>Loading quest log...</span>
+                <span>Hi! Tell me about your day or ask for a quest.</span>
             </div>
             
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
-                <!-- Decor SVGs (Hidden until equipped) -->
                 <svg class="decor decor-plant" style="bottom: 10%; left: 10%; width: 60px; height: 80px;" viewBox="0 0 60 80">
-                    <path d="M 30 80 L 30 40" stroke="#2e7d32" stroke-width="4"/>
-                    <circle cx="30" cy="40" r="20" fill="#4caf50" opacity="0.8"/>
-                    <circle cx="15" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
-                    <circle cx="45" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
+                    <path d="M 30 80 L 30 40" stroke="#2e7d32" stroke-width="4"/><circle cx="30" cy="40" r="20" fill="#4caf50" opacity="0.8"/><circle cx="15" cy="50" r="12" fill="#388e3c" opacity="0.8"/><circle cx="45" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
                 </svg>
-
                 <svg class="decor decor-lamp" style="top: 10%; right: 10%; width: 50px; height: 70px;" viewBox="0 0 40 60">
-                    <rect x="15" y="20" width="10" height="40" fill="#555"/>
-                    <path d="M 5 20 L 35 20 L 25 0 L 15 0 Z" fill="#ffd54f"/>
-                    <circle cx="20" cy="20" r="30" fill="#ffd54f" opacity="0.15"/>
+                    <rect x="15" y="20" width="10" height="40" fill="#555"/><path d="M 5 20 L 35 20 L 25 0 L 15 0 Z" fill="#ffd54f"/><circle cx="20" cy="20" r="30" fill="#ffd54f" opacity="0.15"/>
                 </svg>
-
                 <svg class="decor decor-rug" style="bottom: 0; width: 100%; height: 40px;" viewBox="0 0 300 40">
-                    <ellipse cx="150" cy="20" rx="140" ry="15" fill="#d32f2f" opacity="0.4"/>
-                    <ellipse cx="150" cy="20" rx="120" ry="10" fill="#b71c1c" opacity="0.6"/>
+                    <ellipse cx="150" cy="20" rx="140" ry="15" fill="#d32f2f" opacity="0.4"/><ellipse cx="150" cy="20" rx="120" ry="10" fill="#b71c1c" opacity="0.6"/>
                 </svg>
 
-                <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" stop-color="var(--body-inner)"/>
-                            <stop offset="100%" stop-color="var(--body-outer)"/>
-                        </radialGradient>
-                    </defs>
+                    <defs><radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="var(--body-inner)"/><stop offset="100%" stop-color="var(--body-outer)"/></radialGradient></defs>
                     <g class="bob-group">
-                        <!-- Wearables -->
                         <ellipse class="cosmetic halo" cx="100" cy="42" rx="35" ry="10" fill="none" stroke="#ffd700" stroke-width="4" opacity="0.8" />
-                        <path class="cosmetic sprout" d="M 100 58 Q 95 40 80 45 Q 95 50 100 58 Z" fill="#4ade80" />
-                        <path class="cosmetic sprout" d="M 100 58 Q 105 40 120 45 Q 105 50 100 58 Z" fill="#22c55e" />
-                        <path class="cosmetic scarf" d="M 50 140 Q 100 160 150 140 L 150 155 Q 100 175 50 155 Z" fill="#ef4444" />
-                        <path class="cosmetic scarf" d="M 135 145 L 145 180 L 130 180 Z" fill="#dc2626" />
+                        <path class="cosmetic sprout" d="M 100 58 Q 95 40 80 45 Q 95 50 100 58 Z" fill="#4ade80" /><path class="cosmetic sprout" d="M 100 58 Q 105 40 120 45 Q 105 50 100 58 Z" fill="#22c55e" />
+                        <path class="cosmetic scarf" d="M 50 140 Q 100 160 150 140 L 150 155 Q 100 175 50 155 Z" fill="#ef4444" /><path class="cosmetic scarf" d="M 135 145 L 145 180 L 130 180 Z" fill="#dc2626" />
                         <path class="cosmetic crown" d="M 75 55 L 85 25 L 100 45 L 115 25 L 125 55 Z" fill="#fbbf24" stroke="#b45309" stroke-width="2" stroke-linejoin="round" />
                         
                         <g class="breath-group">
                             <path class="body" d="M 100 175 C 35 175, 25 110, 45 70 C 65 35, 135 35, 155 70 C 175 110, 165 175, 100 175 Z" fill="url(#bodyGrad)"/>
                             <g class="face">
-                                <ellipse class="eye" cx="80" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
-                                <ellipse class="eye" cx="120" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
-                                <circle cx="78" cy="102" r="2.5" fill="#fff" opacity="0.9"/>
-                                <circle cx="118" cy="102" r="2.5" fill="#fff" opacity="0.9"/>
+                                <ellipse class="eye" cx="80" cy="105" rx="7" ry="10" fill="#1a1a2e"/><ellipse class="eye" cx="120" cy="105" rx="7" ry="10" fill="#1a1a2e"/>
+                                <circle cx="78" cy="102" r="2.5" fill="#fff" opacity="0.9"/><circle cx="118" cy="102" r="2.5" fill="#fff" opacity="0.9"/>
                                 <path class="mouth mouth-radiant" d="M 82 128 Q 100 145 118 128" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-content" d="M 85 130 Q 100 138 115 130" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-settled" d="M 88 132 L 112 132" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-quiet" d="M 88 133 Q 100 131 112 133" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                                 <path class="mouth mouth-low" d="M 85 137 Q 100 127 115 137" fill="none" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
                             </g>
-                            <g class="cheeks">
-                                <circle cx="66" cy="120" r="7" fill="#ff8fb8" opacity="0.5"/>
-                                <circle cx="134" cy="120" r="7" fill="#ff8fb8" opacity="0.5"/>
-                            </g>
+                            <g class="cheeks"><circle cx="66" cy="120" r="7" fill="#ff8fb8" opacity="0.5"/><circle cx="134" cy="120" r="7" fill="#ff8fb8" opacity="0.5"/></g>
                         </g>
                     </g>
                 </svg>
+            </div>
+
+            <!-- AI Text / Voice Logger -->
+            <div class="ai-chat-container">
+                <input type="text" id="ai-input" class="ai-input" placeholder="e.g. Slept 8 hours, feeling great..." onkeypress="if(event.key === 'Enter') window.AILogger.processText(this.value)">
+                <button type="button" class="ai-mic-btn" id="ai-mic-btn" onclick="window.AILogger.toggleMic()"><i class="fa-solid fa-microphone"></i></button>
+                <button type="button" class="ai-mic-btn" style="color:#000; background:var(--accent);" onclick="window.AILogger.processText(document.getElementById('ai-input').value)"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
 
             <!-- HUD -->
@@ -113,6 +97,8 @@
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
+    <script src="ai-logger.js"></script>
+    
     <script>
         function navigateToPage(page) { window.location.href = page; }
         let currentQuestLink = null;
@@ -128,11 +114,7 @@
             const svg = document.getElementById('companion');
             svg.style.transform = 'scale(0.85) translateY(-20px)';
             setTimeout(() => { svg.style.transform = 'scale(1) translateY(0)'; }, 150);
-            
-            if (window.Juice) {
-                Juice.playPetSound();
-                Juice.vibrate(30);
-            }
+            if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
         function switchTab(tab) {
@@ -142,16 +124,9 @@
             updateDashboard(Companion.view());
         }
 
-        function equipWearable(item) {
-            if (!item) return;
-            Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: item } });
-        }
-
-        function toggleDecor(item) {
-            if (!item) return;
-            Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } });
-        }
-
+        function equipWearable(item) { if (item) Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: item } }); }
+        function toggleDecor(item) { if (item) Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } }); }
+        
         function linkGuild() {
             const code = prompt("Enter a Guild Code (or leave blank to generate one):");
             if (code === null) return;
@@ -168,9 +143,9 @@
             document.getElementById('xp-bar-fill').style.width = `${progress}%`;
             document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
 
-            // Quest
-            if (view.quest) {
-                const bubble = document.getElementById('companion-memory');
+            // Quest (Only update the bubble if the AI isn't typing a response)
+            const bubble = document.getElementById('companion-memory');
+            if (view.quest && bubble.innerText.includes("Loading") || bubble.innerText.includes("Hi!")) {
                 bubble.innerHTML = `<span>${view.quest.text}</span><span class="quest-action">👉 ${view.quest.action}</span>`;
                 currentQuestLink = view.quest.link;
             }
@@ -179,17 +154,9 @@
             const guildCard = document.getElementById('guild-card');
             if (view.guild && view.guild.code) {
                 const streak = view.guild.sharedStreak + (view.guild.partnerActive ? 1 : 0);
-                guildCard.innerHTML = `
-                    <div class="guild-title">Guild Linked: <span style="color:var(--accent)">${view.guild.code}</span></div>
-                    <div class="guild-streak">🔥 ${streak} Day Streak</div>
-                    <div style="font-size:11px; color:var(--text-muted);">Partner Active Today</div>
-                `;
+                guildCard.innerHTML = `<div class="guild-title">Guild Linked: <span style="color:var(--accent)">${view.guild.code}</span></div><div class="guild-streak">🔥 ${streak} Day Streak</div><div style="font-size:11px; color:var(--text-muted);">Partner Active Today</div>`;
             } else {
-                guildCard.innerHTML = `
-                    <div class="guild-title">Play with a Friend</div>
-                    <div style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Link accounts to build a shared streak. If one of you fails, the streak breaks!</div>
-                    <button class="guild-btn" onclick="linkGuild()">Link / Create Guild</button>
-                `;
+                guildCard.innerHTML = `<div class="guild-title">Play with a Friend</div><div style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Link accounts to build a shared streak.</div><button class="guild-btn" onclick="linkGuild()">Link / Create Guild</button>`;
             }
 
             // Decor
@@ -198,7 +165,6 @@
             // Inventory
             const invContainer = document.getElementById('inventory');
             invContainer.innerHTML = '';
-            
             if (currentInvTab === 'wearables') {
                 const items = ['halo', 'sprout', 'scarf', 'crown'];
                 items.forEach(item => {
