@@ -36,6 +36,7 @@
         </header>
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
+            
             <!-- AI Response / Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory" onclick="gotoQuest()">
                 <span>Hi! Tell me about your day or ask for a quest.</span>
@@ -43,6 +44,9 @@
             
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
+                <!-- The new dynamic Aura Ring -->
+                <div class="aura-ring"></div>
+                
                 <svg class="decor decor-plant" style="bottom: 10%; left: 10%; width: 60px; height: 80px;" viewBox="0 0 60 80">
                     <path d="M 30 80 L 30 40" stroke="#2e7d32" stroke-width="4"/><circle cx="30" cy="40" r="20" fill="#4caf50" opacity="0.8"/><circle cx="15" cy="50" r="12" fill="#388e3c" opacity="0.8"/><circle cx="45" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
                 </svg>
@@ -171,8 +175,10 @@
                 guildCard.innerHTML = `<div class="guild-title">Play with a Friend</div><div style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Link accounts to build a shared streak.</div><button class="guild-btn" onclick="linkGuild()">Link / Create Guild</button>`;
             }
 
-            // Decor
-            document.getElementById('sanctuary').setAttribute('data-decor', view.equipped.decor.join(' '));
+            // Update the Aura and Decor
+            const sanctuary = document.getElementById('sanctuary');
+            sanctuary.setAttribute('data-dominant', view.dominantStat);
+            sanctuary.setAttribute('data-decor', view.equipped.decor.join(' '));
             
             // Inventory
             const invContainer = document.getElementById('inventory');
@@ -202,9 +208,6 @@
                     invContainer.appendChild(div);
                 });
             }
-
-            // Wearable state on SVG
-            document.getElementById('companion').setAttribute('data-wearable', view.equipped.wearable || '');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
