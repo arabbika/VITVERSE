@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "grok-beta", 
+        model: "grok-4.3", 
         max_tokens: 800,
         messages: [
           {
