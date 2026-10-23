@@ -244,90 +244,72 @@
   backdrop-filter: none;
   cursor: default;
 }
-.companion-memory.is-expanded:hover {
-  transform: none;
-  background: transparent;
-}
+.companion-memory.is-expanded:hover { transform: none; background: transparent; }
 
 .aura-plan {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 340px;
-  margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; margin: 0 auto;
   animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes slide-up {
-  0% { transform: translateY(20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-}
+@keyframes slide-up { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
 
-.phase-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-glass);
-  border-radius: 16px;
-  padding: 16px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  text-align: left;
-}
+.phase-card { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 16px; padding: 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); text-align: left; }
+.phase-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.phase-content { font-size: 14px; line-height: 1.5; color: var(--text-main); }
 
-.phase-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.phase-content {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-main);
-}
-
-/* Color coding for different phases */
 .phase-objective { border-left: 4px solid #ffd700; }
 .phase-objective .phase-title { color: #ffd700; }
-
 .phase-1 { border-left: 4px solid #ff4444; }
 .phase-1 .phase-title { color: #ff4444; }
-
 .phase-2 { border-left: 4px solid #00e5ff; }
 .phase-2 .phase-title { color: #00e5ff; }
-
 .phase-3 { border-left: 4px solid #4ade80; }
 .phase-3 .phase-title { color: #4ade80; }
-
 .phase-somatic { border-left: 4px solid #a8e8ff; background: rgba(0, 229, 255, 0.05); }
 .phase-somatic .phase-title { color: #a8e8ff; }
 
-
 .dismiss-plan-btn {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  padding: 14px;
-  border-radius: 16px;
-  font-family: var(--font-ui);
-  font-weight: 800;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 0 20px var(--accent-glow);
+  background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px;
+  font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer;
+  margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow);
 }
-.dismiss-plan-btn:active { 
-  transform: scale(0.96); 
-  box-shadow: none;
+.dismiss-plan-btn:active { transform: scale(0.96); box-shadow: none; }
+
+/* --- AURA RING (Dynamic Environment) --- */
+.aura-ring {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  z-index: 1;
+  transition: all 1s ease;
+  opacity: 0.4;
+  pointer-events: none;
 }
+
+.sanctuary-stage[data-dominant="rest"] .aura-ring {
+  box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3);
+  background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%);
+  animation: cosmic-pulse 8s infinite alternate;
+}
+.sanctuary-stage[data-dominant="energy"] .aura-ring {
+  box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3);
+  background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%);
+  animation: electric-shake 0.5s infinite;
+}
+.sanctuary-stage[data-dominant="calm"] .aura-ring {
+  box-shadow: 0 0 80px 10px rgba(0, 200, 255, 0.3);
+  background: radial-gradient(circle, rgba(0,200,255,0.1) 0%, transparent 70%);
+  animation: water-ripple 4s infinite alternate;
+}
+.sanctuary-stage[data-dominant="mood"] .aura-ring {
+  box-shadow: 0 0 80px 10px rgba(255, 100, 200, 0.3);
+  background: radial-gradient(circle, rgba(255,100,200,0.1) 0%, transparent 70%);
+  animation: bloom-pulse 4s infinite alternate;
+}
+
+@keyframes cosmic-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.6; } }
+@keyframes electric-shake { 0% { transform: translate(0,0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0,0); } }
+@keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
+@keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
