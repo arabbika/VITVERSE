@@ -1,5 +1,6 @@
 // api/chat.js
-export const maxDuration = 60; // Allow up to 60 seconds for Vercel (if on Pro plan) or max allowed
+export const maxDuration = 60; // Allow up to 60 seconds (if your Vercel plan supports it)
+export const config = { runtime: 'edge' }; // Edge functions often have higher timeout limits
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -8,14 +9,16 @@ export default async function handler(req, res) {
   if (!brainDump) return res.status(400).json({ error: 'No input provided' });
 
   try {
+    // We use a 25-second timeout to abort the fetch if xAI hangs
     const response = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.XAI_API_KEY}`,
         "Content-Type": "application/json"
       },
+      signal: AbortSignal.timeout(25000), 
       body: JSON.stringify({
-        model: "grok-4.7", // Updated model name
+        model: "grok-4.7", // Ensure this is the exact model your account has access to
         max_tokens: 800,
         messages: [
           {
@@ -41,12 +44,12 @@ Keep it brief, highly actionable, and supportive. Do not output anything outside
       })
     });
 
-    const rawText = await response.text(); // Get raw text first
+    const rawText = await response.text(); 
     
     if (!response.ok) {
       console.error("xAI API Error Status:", response.status);
       console.error("xAI API Error Body:", rawText);
-      return res.status(500).json({ error: `xAI Error: ${response.status} - ${rawText.substring(0, 100)}` });
+      return res.status(500).json({ error: `xAI Error: ${response.status}` });
     }
 
     let data;
@@ -56,16 +59,18 @@ Keep it brief, highly actionable, and supportive. Do not output anything outside
       return res.status(500).json({ error: "Received invalid JSON from xAI." });
     }
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      return res.status(500).json({ error: "Unexpected response format from xAI." });
-    }
-
     const text = data.choices[0].message.content;
     const xpReward = brainDump.length > 100 ? 150 : 75;
 
     res.status(200).json({ text, xpReward });
   } catch (error) {
     console.error("Serverless Function Error:", error);
+    
+    // Check if the error was a timeout
+    if (error.name === 'TimeoutError') {
+       return res.status(504).json({ error: 'Aura took too long to think. Please try a shorter message.' });
+    }
+    
     // This guarantees the frontend ALWAYS gets JSON
     res.status(500).json({ error: 'Aura crashed internally. Please try again.' });
   }
