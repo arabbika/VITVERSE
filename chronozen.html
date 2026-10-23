@@ -4,110 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ChronoZen — Vitverse</title>
-
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-
-    <!-- App styles -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
-
-    <!-- FullCalendar v6 -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-
-    <!-- Companion engine -->
     <script src="companion.js"></script>
-
+    
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(r => console.log('SW registered:', r.scope))
-                .catch(e => console.error('SW registration failed:', e));
+            navigator.serviceWorker.register('./sw.js').then((registration) => {
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
 
     <style>
-        /* Allow ChronoZen to be wider on desktop to fit the calendar */
         .wrapper { max-width: 900px; }
-
-        /* Header & Logo */
-        .header-top {
-            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;
-        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
         .logo-link { display: inline-block; cursor: pointer; transition: transform 0.2s ease; }
         .logo-link:active { transform: scale(0.95); }
         .logo-image { width: 140px; height: auto; display: block; }
-
-        /* Category Tabs (Replaces footer) */
-        .category-tabs {
-            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
-            scrollbar-width: none; /* Hide scrollbar Firefox */
-        }
-        .category-tabs::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
-        .cat-tab {
-            background: rgba(0,0,0,0.3); border: 1px solid transparent; padding: 8px 16px;
-            border-radius: 20px; color: var(--text-muted); font-weight: 600; font-size: 12px;
-            cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
-        }
-        .cat-tab.active {
-            background: var(--bg-surface); border-color: var(--border-glass); color: var(--text-main);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-color: var(--accent);
-        }
-
-        /* Draggable Tasks Area */
+        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+        .category-tabs::-webkit-scrollbar { display: none; }
+        .cat-tab { background: rgba(0,0,0,0.3); border: 1px solid transparent; padding: 8px 16px; border-radius: 20px; color: var(--text-muted); font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+        .cat-tab.active { background: var(--bg-surface); border-color: var(--accent); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
         .child-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
         .child-buttons.active { display: flex; }
-        
-        /* Make buttons look draggable */
-        .container .neumorphic-button {
-            cursor: grab; background: linear-gradient(135deg, rgba(30, 34, 53, 0.8) 0%, rgba(20, 24, 38, 0.8) 100%);
-        }
+        .container .neumorphic-button { cursor: grab; background: linear-gradient(135deg, rgba(30, 34, 53, 0.8) 0%, rgba(20, 24, 38, 0.8) 100%); }
         .container .neumorphic-button:active { cursor: grabbing; }
-
-        /* Calendar Styling */
-        .calendar-container {
-            background: var(--bg-surface); border: 1px solid var(--border-glass);
-            border-radius: 24px; padding: 16px; backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        #calendar {
-            /* FullCalendar CSS Variables for Dark Theme */
-            --fc-border-color: rgba(255,255,255,0.08);
-            --fc-page-bg-color: transparent;
-            --fc-neutral-bg-color: rgba(0,0,0,0.2);
-            --fc-today-bg-color: rgba(0, 229, 255, 0.1);
-            --fc-event-bg-color: var(--accent);
-            --fc-event-border-color: transparent;
-            --fc-event-text-color: #000;
-            --fc-button-bg-color: rgba(255,255,255,0.1);
-            --fc-button-border-color: transparent;
-            --fc-button-hover-bg-color: rgba(255,255,255,0.2);
-            --fc-button-active-bg-color: var(--accent);
-            --fc-button-active-text-color: #000;
-            color: var(--text-main);
-            font-family: var(--font-ui);
-        }
-        
+        .calendar-container { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 24px; padding: 16px; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+        #calendar { --fc-border-color: rgba(255,255,255,0.08); --fc-page-bg-color: transparent; --fc-neutral-bg-color: rgba(0,0,0,0.2); --fc-today-bg-color: rgba(0, 229, 255, 0.1); --fc-event-bg-color: var(--accent); --fc-event-border-color: transparent; --fc-event-text-color: #000; --fc-button-bg-color: rgba(255,255,255,0.1); --fc-button-border-color: transparent; --fc-button-hover-bg-color: rgba(255,255,255,0.2); --fc-button-active-bg-color: var(--accent); --fc-button-active-text-color: #000; color: var(--text-main); font-family: var(--font-ui); }
         .fc-theme-standard td, .fc-theme-standard th { border-color: var(--fc-border-color); }
         .fc-col-header-cell-cushion, .fc-daygrid-day-number { color: var(--text-muted); text-decoration: none; font-weight: 600; }
         .fc-toolbar-title { font-family: var(--font-display); font-size: 1.2rem !important; text-transform: uppercase; color: var(--accent); }
-        
-        /* Event Delete Icon */
-        .event-delete-icon {
-            position: absolute; top: 2px; right: 4px; color: #000; cursor: pointer;
-            font-size: 16px; font-weight: bold; z-index: 2; user-select: none; opacity: 0.6;
-        }
+        .event-delete-icon { position: absolute; top: 2px; right: 4px; color: #000; cursor: pointer; font-size: 16px; font-weight: bold; z-index: 2; user-select: none; opacity: 0.6; }
         .event-delete-icon:hover { opacity: 1; }
-
-        /* FullCalendar Drag Ghost */
         .fc-event-dragging { opacity: 0.8; transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
     </style>
 </head>
-
 <body>
     <div class="wrapper">
         <header>
@@ -116,7 +61,6 @@
                     <img src="logo.png" alt="VITVERSE" class="logo-image">
                 </a>
             </div>
-
             <div class="top-buttons">
                 <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
                 <button type="button" class="neumorphic-button active" onclick="navigateToPage('chronozen.html')"><i class="fa-solid fa-calendar"></i><span>Quests</span></button>
@@ -125,7 +69,6 @@
             </div>
         </header>
 
-        <!-- Category Tabs -->
         <div class="category-tabs">
             <button class="cat-tab active" onclick="showChildButtons('wellbeing', this)">WellBeing</button>
             <button class="cat-tab" onclick="showChildButtons('productivity', this)">Productivity</button>
@@ -133,7 +76,6 @@
             <button class="cat-tab" onclick="showChildButtons('relaxation', this)">Relaxation</button>
         </div>
 
-        <!-- Draggable Tasks -->
         <div class="container">
             <div id="wellbeing" class="child-buttons active">
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-dumbbell"></i><span>Skills</span></button>
@@ -145,148 +87,78 @@
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-bed"></i><span>Sleep</span></button>
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-dollar-sign"></i><span>Financial</span></button>
             </div>
-
             <div id="productivity" class="child-buttons">
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-list"></i><span>Tasks</span></button>
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-briefcase"></i><span>Deep Work</span></button>
             </div>
-
             <div id="connections" class="child-buttons">
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-handshake"></i><span>Interaction</span></button>
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-comments"></i><span>Communication</span></button>
             </div>
-
             <div id="relaxation" class="child-buttons">
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-gamepad"></i><span>Games</span></button>
                 <button type="button" class="neumorphic-button"><i class="fa-solid fa-music"></i><span>Music</span></button>
             </div>
         </div>
 
-        <!-- Calendar -->
         <div class="calendar-container">
             <div id="calendar"></div>
         </div>
     </div>
 
     <script>
-        // ---------- navigation ----------
-        function navigateToPage(page) {
-            window.location.href = page;
-        }
-
-        // ---------- child button toggling ----------
+        function navigateToPage(page) { window.location.href = page; }
         function showChildButtons(category, btnElement) {
-            document.querySelectorAll('.child-buttons').forEach(div => {
-                div.classList.remove('active');
-            });
-            document.querySelectorAll('.cat-tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
+            document.querySelectorAll('.child-buttons').forEach(div => div.classList.remove('active'));
+            document.querySelectorAll('.cat-tab').forEach(btn => btn.classList.remove('active'));
             const target = document.getElementById(category);
             if (target) target.classList.add('active');
             if (btnElement) btnElement.classList.add('active');
         }
 
-        // ---------- calendar persistence ----------
         const STORAGE_KEY = 'chronozen.events.v1';
+        function loadEvents() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; } }
+        function saveEvents(calendar) { try { const events = calendar.getEvents().map(e => ({ id: e.id, title: e.title, start: e.startStr, end: e.endStr, allDay: e.allDay })); localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); } catch (err) {} }
 
-        function loadEvents() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                return raw ? JSON.parse(raw) : [];
-            } catch {
-                return [];
-            }
-        }
-
-        function saveEvents(calendar) {
-            if (!calendar) return;
-            try {
-                const events = calendar.getEvents().map(e => ({
-                    id: e.id,
-                    title: e.title,
-                    start: e.startStr,
-                    end: e.endStr,
-                    allDay: e.allDay,
-                }));
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-            } catch (err) {
-                console.warn('Failed to save events:', err);
-            }
-        }
-
-        // ---------- init ----------
         document.addEventListener('DOMContentLoaded', function () {
             const calendarEl = document.getElementById('calendar');
-            if (!calendarEl || typeof FullCalendar === 'undefined') {
-                console.error('FullCalendar not loaded or #calendar missing');
-                return;
-            }
+            if (!calendarEl || typeof FullCalendar === 'undefined') return;
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
                 events: loadEvents(),
-                headerToolbar: {
-                    left: 'title',
-                    right: 'today prev,next'
-                },
-
+                headerToolbar: { left: 'title', right: 'today prev,next' },
                 eventReceive: function (info) {
                     info.event.setProp('title', info.draggedEl.getAttribute('data-event-title') || 'Quest');
-                    // Make the event look like a real game quest
                     info.event.setProp('backgroundColor', 'var(--accent)');
                     info.event.setProp('textColor', '#000');
                     saveEvents(calendar);
-
-                    // FEED THE COMPANION!
                     if (window.Companion) {
-                        Companion.emit({
-                            id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
-                            type: 'TASK_COMPLETE',
-                        });
-                        // Trigger Juice for level up if it happens
-                        if (window.Juice) {
-                            Juice.checkLevelUp(Companion.view());
-                        }
+                        Companion.emit({ id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))), type: 'TASK_COMPLETE' });
+                        if (window.Juice) Juice.checkLevelUp(Companion.view());
                     }
                 },
-
                 eventDrop: function () { saveEvents(calendar); },
                 eventRemove: function () { saveEvents(calendar); },
-
                 eventDidMount: function (info) {
                     const del = document.createElement('span');
                     del.textContent = '\u00D7';
                     del.className = 'event-delete-icon';
-                    del.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        if (confirm('Delete this quest?')) {
-                            info.event.remove(); 
-                        }
-                    });
+                    del.addEventListener('click', function (e) { e.stopPropagation(); if (confirm('Delete this quest?')) info.event.remove(); });
                     const pos = window.getComputedStyle(info.el).position;
                     if (pos === 'static') info.el.style.position = 'relative';
                     info.el.appendChild(del);
                 },
             });
-
             calendar.render();
 
-            // Make the child buttons draggable
             document.querySelectorAll('.container .neumorphic-button').forEach(function (elem) {
                 const span = elem.querySelector('span');
                 const title = span ? span.textContent.trim() : 'Quest';
                 elem.setAttribute('data-event-title', title);
-
-                new FullCalendar.Draggable(elem, {
-                    itemSelector: '.neumorphic-button',
-                    eventData: function () {
-                        return { title: title };
-                    },
-                });
+                new FullCalendar.Draggable(elem, { itemSelector: '.neumorphic-button', eventData: function () { return { title: title }; } });
             });
         });
     </script>
