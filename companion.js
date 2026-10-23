@@ -1,9 +1,9 @@
 /**
- * Vitverse Companion — Real-Life RPG Engine (v3)
- * Added: Sanctuary (Room), Guilds (Shared Streak), Furniture Loot
+ * Vitverse Companion — Real-Life RPG Engine (v3.1)
+ * Added: dominantStat calculation for Dynamic Auras
  */
 const Companion = (() => {
-  const KEY = 'vitverse.companion.v3'; // Upgraded version
+  const KEY = 'vitverse.companion.v3'; // Kept as v3 to preserve user data
 
   const CFG = {
     version: 3,
@@ -28,7 +28,6 @@ const Companion = (() => {
     vars: { calm: 60, energy: 60, rest: 60, mood: 60 },
     xp: 0,
     level: 1,
-    // Inventory splits into Wearables (on the blob) and Decor (in the room)
     inventory: { wearables: [], decor: [] },
     equipped: { wearable: null, decor: [] }, 
     guild: { code: guildParam || null, sharedStreak: 0, partnerActive: false },
@@ -56,7 +55,6 @@ const Companion = (() => {
     return r < 0.5 ? 1 : r < 0.8 ? 0.6 : r >= 1 ? 0 : 0.3;
   };
 
-  // Added Furniture to the Loot Table
   const LOOT_WEARABLES = ['halo', 'sprout', 'scarf', 'crown'];
   const LOOT_DECOR = ['plant', 'lamp', 'rug', 'terminal'];
 
@@ -139,7 +137,7 @@ const Companion = (() => {
     let newEquipped = { ...s.equipped };
     
     if (hasLootCheck && Math.random() < 0.3) { // 30% drop rate
-      const dropDecor = Math.random() < 0.5; // 50/50 chance for decor vs wearable
+      const dropDecor = Math.random() < 0.5; // 50/50 chance
       if (dropDecor) {
         const avail = LOOT_DECOR.filter(i => !newInventory.decor.includes(i));
         if (avail.length > 0) {
@@ -177,6 +175,17 @@ const Companion = (() => {
   function view(s, now = Date.now()) {
     const v = decayed(s, now);
     const h = new Date(now).getHours();
+    
+    // Find the dominant stat for the Aura System
+    const auraStats = [
+      { name: 'calm', val: v.calm },
+      { name: 'energy', val: v.energy },
+      { name: 'rest', val: v.rest },
+      { name: 'mood', val: v.mood }
+    ];
+    auraStats.sort((a, b) => b.val - a.val); // Sort highest to lowest
+    const dominantStat = auraStats[0].name;
+
     return {
       vars: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round(x)])),
       xp: s.xp,
@@ -185,6 +194,7 @@ const Companion = (() => {
       inventory: s.inventory,
       equipped: s.equipped,
       guild: s.guild,
+      dominantStat: dominantStat,
       moodWord:  v.mood >= 80 ? 'radiant' : v.mood >= 60 ? 'content' : v.mood >= 45 ? 'settled' : v.mood >= 30 ? 'quiet' : 'low',
       energyBand: v.energy >= 70 ? 'bouncy' : v.energy >= 45 ? 'steady' : 'slow',
       breathSync: v.calm >= 70 ? 'slow' : v.calm >= 45 ? 'even' : 'shallow',
@@ -199,6 +209,7 @@ const Companion = (() => {
       return !s || s.version !== CFG.version ? blank() : s;
     } catch { return blank(); }
   }
+  
   const save = s => localStorage.setItem(KEY, JSON.stringify(s));
   const fire = s => window.dispatchEvent(new CustomEvent('companion:update', { detail: view(s) }));
 
