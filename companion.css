@@ -233,3 +233,77 @@
   70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
   100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
 }
+
+/* --- Aura Game Plan UI --- */
+.companion-memory.is-expanded {
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  cursor: default;
+}
+.companion-memory.is-expanded:hover {
+  transform: none;
+  background: transparent;
+}
+
+.aura-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.phase-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+.phase-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phase-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+/* Color coding for different phases */
+.phase-objective { border-left: 4px solid #ffd700; }
+.phase-objective .phase-title { color: #ffd700; }
+
+.phase-1 { border-left: 4px solid #ff4444; }
+.phase-1 .phase-title { color: #ff4444; }
+
+.phase-2 { border-left: 4px solid #00e5ff; }
+.phase-2 .phase-title { color: #00e5ff; }
+
+.phase-3 { border-left: 4px solid #4ade80; }
+.phase-3 .phase-title { color: #4ade80; }
+
+.phase-somatic { border-left: 4px solid #a8e8ff; background: rgba(0, 229, 255, 0.05); }
+.phase-somatic .phase-title { color: #a8e8ff; }
