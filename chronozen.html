@@ -2,20 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ChronoZen — Vitverse</title>
 
     <!-- Icons -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
-          integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
 
     <!-- App styles -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="manifest.json">
+    <meta name="theme-color" content="#0f111a">
 
     <!-- FullCalendar v6 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
@@ -33,181 +29,143 @@
     </script>
 
     <style>
-        /* ---------- Logo Link ---------- */
-        .logo-link {
-            display: inline-block;
-            margin-top: 20px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
+        /* Allow ChronoZen to be wider on desktop to fit the calendar */
+        .wrapper { max-width: 900px; }
+
+        /* Header & Logo */
+        .header-top {
+            display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;
         }
-        .logo-link:active {
-            transform: scale(0.95);
+        .logo-link { display: inline-block; cursor: pointer; transition: transform 0.2s ease; }
+        .logo-link:active { transform: scale(0.95); }
+        .logo-image { width: 140px; height: auto; display: block; }
+
+        /* Category Tabs (Replaces footer) */
+        .category-tabs {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
         }
-        .logo-image {
-            width: 160px; /* Adjusted to match BreatheWell */
-            height: auto;
-            display: block;
+        .category-tabs::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
+        .cat-tab {
+            background: rgba(0,0,0,0.3); border: 1px solid transparent; padding: 8px 16px;
+            border-radius: 20px; color: var(--text-muted); font-weight: 600; font-size: 12px;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
+        }
+        .cat-tab.active {
+            background: var(--bg-surface); border-color: var(--border-glass); color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-color: var(--accent);
         }
 
-        /* ---------- child-button default state ---------- */
-        .child-buttons:not(.active) { display: none; }
-        .child-buttons.active        { display: flex; }
+        /* Draggable Tasks Area */
+        .container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+        .child-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+        .child-buttons.active { display: flex; }
+        
+        /* Make buttons look draggable */
+        .container .neumorphic-button {
+            cursor: grab; background: linear-gradient(135deg, rgba(30, 34, 53, 0.8) 0%, rgba(20, 24, 38, 0.8) 100%);
+        }
+        .container .neumorphic-button:active { cursor: grabbing; }
 
-        /* ---------- calendar ---------- */
+        /* Calendar Styling */
         .calendar-container {
-            width: 90%;
-            max-width: 900px;
-            margin: 20px auto;
+            background: var(--bg-surface); border: 1px solid var(--border-glass);
+            border-radius: 24px; padding: 16px; backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
+        
         #calendar {
-            background: #2c2c2c;
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: 5px 5px 10px #1a1a1a, -5px -5px 10px #444;
-            /* Dark mode overrides for FullCalendar */
-            --fc-border-color: #333;
-            --fc-daygrid-event-dot-width: 8px;
-            color: #e0e0e0;
+            /* FullCalendar CSS Variables for Dark Theme */
+            --fc-border-color: rgba(255,255,255,0.08);
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: rgba(0,0,0,0.2);
+            --fc-today-bg-color: rgba(0, 229, 255, 0.1);
+            --fc-event-bg-color: var(--accent);
+            --fc-event-border-color: transparent;
+            --fc-event-text-color: #000;
+            --fc-button-bg-color: rgba(255,255,255,0.1);
+            --fc-button-border-color: transparent;
+            --fc-button-hover-bg-color: rgba(255,255,255,0.2);
+            --fc-button-active-bg-color: var(--accent);
+            --fc-button-active-text-color: #000;
+            color: var(--text-main);
+            font-family: var(--font-ui);
         }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #333; }
-        .fc-col-header-cell-cushion, .fc-daygrid-day-number { color: #e0e0e0; text-decoration: none; }
-
-        /* ---------- event delete icon ---------- */
+        
+        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--fc-border-color); }
+        .fc-col-header-cell-cushion, .fc-daygrid-day-number { color: var(--text-muted); text-decoration: none; font-weight: 600; }
+        .fc-toolbar-title { font-family: var(--font-display); font-size: 1.2rem !important; text-transform: uppercase; color: var(--accent); }
+        
+        /* Event Delete Icon */
         .event-delete-icon {
-            position: absolute;
-            top: 2px;
-            right: 6px;
-            color: #f88;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 1;
-            font-weight: bold;
-            z-index: 2;
-            user-select: none;
+            position: absolute; top: 2px; right: 4px; color: #000; cursor: pointer;
+            font-size: 16px; font-weight: bold; z-index: 2; user-select: none; opacity: 0.6;
         }
-        .event-delete-icon:hover { color: #f44; }
+        .event-delete-icon:hover { opacity: 1; }
 
-        /* ---------- focus visibility ---------- */
-        .neumorphic-button:focus-visible,
-        .footer-button:focus-visible {
-            outline: 2px solid #00bfff;
-            outline-offset: 3px;
-        }
+        /* FullCalendar Drag Ghost */
+        .fc-event-dragging { opacity: 0.8; transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
     </style>
 </head>
 
 <body>
     <div class="wrapper">
         <header>
-            <!-- Updated Logo wrapped in a link back to the hub -->
-            <a href="index.html" class="logo-link" aria-label="Back to Vitverse home">
-                <img src="logo.png" alt="VITVERSE" class="logo-image">
-            </a>
+            <div class="header-top">
+                <a href="index.html" class="logo-link" aria-label="Back to Vitverse home">
+                    <img src="logo.png" alt="VITVERSE" class="logo-image">
+                </a>
+            </div>
 
             <div class="top-buttons">
-                <button type="button" class="neumorphic-button breathewell"
-                        onclick="navigateToPage('breathewell.html')" id="breathewell-btn">
-                    <i class="fa-solid fa-wind"></i>
-                    <span>BreatheWell</span>
-                </button>
-                <button type="button" class="neumorphic-button chronozen active"
-                        onclick="navigateToPage('chronozen.html')" id="chronozen-btn">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span>ChronoZen</span>
-                </button>
-                <button type="button" class="neumorphic-button dreamweaver"
-                        onclick="navigateToPage('dreamweaver.html')" id="dreamweaver-btn">
-                    <i class="fa-solid fa-lightbulb"></i>
-                    <span>Dreamweaver</span>
-                </button>
-                <button type="button" class="neumorphic-button soulsync"
-                        onclick="navigateToPage('soulsync.html')" id="soulsync-btn">
-                    <i class="fa-solid fa-heart"></i>
-                    <span>SoulSync</span>
-                </button>
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
+                <button type="button" class="neumorphic-button active" onclick="navigateToPage('chronozen.html')"><i class="fa-solid fa-calendar"></i><span>Quests</span></button>
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('dreamweaver.html')"><i class="fa-solid fa-lightbulb"></i><span>Camp</span></button>
+                <button type="button" class="neumorphic-button" onclick="navigateToPage('soulsync.html')"><i class="fa-solid fa-heart"></i><span>Spirit</span></button>
             </div>
         </header>
 
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="cat-tab active" onclick="showChildButtons('wellbeing', this)">WellBeing</button>
+            <button class="cat-tab" onclick="showChildButtons('productivity', this)">Productivity</button>
+            <button class="cat-tab" onclick="showChildButtons('connections', this)">Connections</button>
+            <button class="cat-tab" onclick="showChildButtons('relaxation', this)">Relaxation</button>
+        </div>
+
+        <!-- Draggable Tasks -->
         <div class="container">
-            <div id="wellbeing" class="child-buttons wellbeing active">
-                <button type="button" class="neumorphic-button" id="skills-btn">
-                    <i class="fa-solid fa-dumbbell"></i><span>Skills</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="mindfulness-btn">
-                    <i class="fa-solid fa-brain"></i><span>Mindfulness</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="reflection-btn">
-                    <i class="fa-solid fa-book"></i><span>Reflection</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="moods-btn">
-                    <i class="fa-solid fa-smile"></i><span>Moods</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="exercise-btn">
-                    <i class="fa-solid fa-running"></i><span>Exercise</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="nutrition-btn">
-                    <i class="fa-solid fa-utensils"></i><span>Nutrition</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="sleep-btn">
-                    <i class="fa-solid fa-bed"></i><span>Sleep</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="financial-btn">
-                    <i class="fa-solid fa-dollar-sign"></i><span>Financial</span>
-                </button>
+            <div id="wellbeing" class="child-buttons active">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dumbbell"></i><span>Skills</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-brain"></i><span>Mindfulness</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-book"></i><span>Reflection</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-smile"></i><span>Moods</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-running"></i><span>Exercise</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-utensils"></i><span>Nutrition</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-bed"></i><span>Sleep</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dollar-sign"></i><span>Financial</span></button>
             </div>
 
-            <div id="productivity" class="child-buttons productivity">
-                <button type="button" class="neumorphic-button" id="tasks-btn">
-                    <i class="fa-solid fa-list"></i><span>Tasks</span>
-                </button>
+            <div id="productivity" class="child-buttons">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-list"></i><span>Tasks</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-briefcase"></i><span>Deep Work</span></button>
             </div>
 
-            <div id="connections" class="child-buttons connections">
-                <button type="button" class="neumorphic-button" id="interaction-btn">
-                    <i class="fa-solid fa-handshake"></i><span>Interaction</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="communication-btn">
-                    <i class="fa-solid fa-comments"></i><span>Communication</span>
-                </button>
+            <div id="connections" class="child-buttons">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-handshake"></i><span>Interaction</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-comments"></i><span>Communication</span></button>
             </div>
 
-            <div id="relaxation" class="child-buttons relaxation">
-                <button type="button" class="neumorphic-button" id="games-btn">
-                    <i class="fa-solid fa-gamepad"></i><span>Games</span>
-                </button>
-                <button type="button" class="neumorphic-button" id="music-btn">
-                    <i class="fa-solid fa-music"></i><span>Music</span>
-                </button>
+            <div id="relaxation" class="child-buttons">
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-gamepad"></i><span>Games</span></button>
+                <button type="button" class="neumorphic-button"><i class="fa-solid fa-music"></i><span>Music</span></button>
             </div>
         </div>
 
+        <!-- Calendar -->
         <div class="calendar-container">
             <div id="calendar"></div>
         </div>
-
-        <footer>
-            <button type="button" class="footer-button wellbeing"
-                    onclick="showChildButtons('wellbeing')"
-                    aria-expanded="true" aria-controls="wellbeing">
-                WellBeing
-            </button>
-            <button type="button" class="footer-button productivity"
-                    onclick="showChildButtons('productivity')"
-                    aria-expanded="false" aria-controls="productivity">
-                Productivity
-            </button>
-            <button type="button" class="footer-button connections"
-                    onclick="showChildButtons('connections')"
-                    aria-expanded="false" aria-controls="connections">
-                Connections
-            </button>
-            <button type="button" class="footer-button relaxation"
-                    onclick="showChildButtons('relaxation')"
-                    aria-expanded="false" aria-controls="relaxation">
-                Relaxation
-            </button>
-        </footer>
     </div>
 
     <script>
@@ -217,23 +175,17 @@
         }
 
         // ---------- child button toggling ----------
-        function showChildButtons(category) {
+        function showChildButtons(category, btnElement) {
             document.querySelectorAll('.child-buttons').forEach(div => {
-                div.style.display = 'none';
                 div.classList.remove('active');
+            });
+            document.querySelectorAll('.cat-tab').forEach(btn => {
+                btn.classList.remove('active');
             });
 
             const target = document.getElementById(category);
-            if (!target) return;
-
-            target.style.display = 'flex';
-            target.classList.add('active');
-
-            document.querySelectorAll('.footer-button').forEach(btn => {
-                btn.setAttribute('aria-expanded', 'false');
-            });
-            const trigger = document.querySelector(`.footer-button.${category}`);
-            if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            if (target) target.classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
         }
 
         // ---------- calendar persistence ----------
@@ -266,13 +218,6 @@
 
         // ---------- init ----------
         document.addEventListener('DOMContentLoaded', function () {
-            // Default child-button state
-            document.querySelectorAll('.child-buttons').forEach(div => {
-                div.style.display = 'none';
-                div.classList.remove('active');
-            });
-            showChildButtons('wellbeing');
-
             const calendarEl = document.getElementById('calendar');
             if (!calendarEl || typeof FullCalendar === 'undefined') {
                 console.error('FullCalendar not loaded or #calendar missing');
@@ -284,40 +229,44 @@
                 editable: true,
                 droppable: true,
                 events: loadEvents(),
+                headerToolbar: {
+                    left: 'title',
+                    right: 'today prev,next'
+                },
 
                 eventReceive: function (info) {
-                    info.event.setProp(
-                        'title',
-                        info.draggedEl.getAttribute('data-event-title') || 'Task'
-                    );
+                    info.event.setProp('title', info.draggedEl.getAttribute('data-event-title') || 'Quest');
+                    // Make the event look like a real game quest
+                    info.event.setProp('backgroundColor', 'var(--accent)');
+                    info.event.setProp('textColor', '#000');
                     saveEvents(calendar);
 
+                    // FEED THE COMPANION!
                     if (window.Companion) {
                         Companion.emit({
-                            id: (window.crypto?.randomUUID?.() ??
-                                 (Date.now() + '-' + Math.random().toString(36).slice(2))),
+                            id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
                             type: 'TASK_COMPLETE',
                         });
+                        // Trigger Juice for level up if it happens
+                        if (window.Juice) {
+                            Juice.checkLevelUp(Companion.view());
+                        }
                     }
                 },
 
-                eventDrop:   function () { saveEvents(calendar); },
+                eventDrop: function () { saveEvents(calendar); },
                 eventRemove: function () { saveEvents(calendar); },
 
                 eventDidMount: function (info) {
                     const del = document.createElement('span');
                     del.textContent = '\u00D7';
                     del.className = 'event-delete-icon';
-                    del.setAttribute('role', 'button');
-                    del.setAttribute('aria-label', 'Delete event');
                     del.addEventListener('click', function (e) {
                         e.stopPropagation();
-                        e.preventDefault();
-                        if (confirm('Delete this event?')) {
-                            info.event.remove();   // fires eventRemove → saveEvents
+                        if (confirm('Delete this quest?')) {
+                            info.event.remove(); 
                         }
                     });
-
                     const pos = window.getComputedStyle(info.el).position;
                     if (pos === 'static') info.el.style.position = 'relative';
                     info.el.appendChild(del);
@@ -326,10 +275,10 @@
 
             calendar.render();
 
-            // Only child buttons inside .container are draggable
+            // Make the child buttons draggable
             document.querySelectorAll('.container .neumorphic-button').forEach(function (elem) {
                 const span = elem.querySelector('span');
-                const title = span ? span.textContent.trim() : 'Task';
+                const title = span ? span.textContent.trim() : 'Quest';
                 elem.setAttribute('data-event-title', title);
 
                 new FullCalendar.Draggable(elem, {
