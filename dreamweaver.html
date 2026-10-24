@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dreamweaver — Vitverse</title>
+    <title>Dreamweaver — Starlight Camp</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
+    
+    <!-- Engine -->
     <script src="companion.js"></script>
+    <script src="juice.js"></script>
+    
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -22,94 +28,165 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
-    <style>
-        body { background: #0f111a; }
-        .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s ease; }
-        .logo-link:active { transform: scale(0.95); }
-        .logo-image { width: 160px; height: auto; display: block; }
-        
-        .dream-card {
-            background: var(--bg-surface); border: 1px solid var(--border-glass);
-            border-radius: 24px; padding: 30px; width: 100%; max-width: 400px;
-            backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-align: center; margin-bottom: 20px;
-        }
-        h2 { color: var(--accent); margin-top: 0; font-size: 20px; font-family: var(--font-display); letter-spacing: 1px;}
-        .hours-display { font-size: 48px; color: #fff; margin: 20px 0; font-weight: bold; font-family: var(--font-display); }
-        
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin-bottom: 30px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 10px var(--accent-glow); margin-top: -8px; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: rgba(0,0,0,0.4); border-radius: 4px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
-        
-        .quality-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        .q-btn {
-            background: rgba(0,0,0,0.3); border: 1px solid transparent; border-radius: 50%; width: 50px; height: 50px;
-            font-size: 24px; cursor: pointer; transition: all 0.2s ease; opacity: 0.5;
-        }
-        .q-btn.selected { opacity: 1; border-color: var(--accent); background: rgba(0, 229, 255, 0.1); transform: scale(1.1); box-shadow: 0 0 15px var(--accent-glow); }
-        
-        .save-btn {
-            background: var(--accent); color: #000; border: none; padding: 15px 40px; border-radius: 16px;
-            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
-            box-shadow: 0 0 15px var(--accent-glow); transition: transform 0.2s ease;
-        }
-        .save-btn:active { transform: scale(0.95); }
-    </style>
 </head>
-<body>
-    <div class="wrapper" style="align-items: center;">
-        <a href="index.html" class="logo-link"><img src="logo.png" alt="VITVERSE" class="logo-image"></a>
+<body id="dream-body">
+
+    <!-- Twinkling Stars Background -->
+    <div id="stars-container"></div>
+
+    <div class="top-bar">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="title-text">DREAMWEAVER</div>
+        <div style="width: 20px;"></div>
+    </div>
+
+    <div class="dream-container">
         
-        <div class="dream-card">
-            <h2>🌙 Dreamweaver</h2>
-            <p style="color: var(--text-muted); font-size: 14px;">How long did you sleep?</p>
-            
-            <div class="hours-display" id="hours-display">7.5h</div>
-            <input type="range" id="sleep-slider" min="3" max="12" step="0.5" value="7.5">
-            
-            <p style="color: var(--text-muted); font-size: 14px; margin-top: 20px;">Sleep Quality</p>
-            <div class="quality-group" id="quality-group">
-                <button type="button" class="q-btn" data-q="1">😫</button>
-                <button type="button" class="q-btn" data-q="2">😕</button>
-                <button type="button" class="q-btn" data-q="3">😐</button>
-                <button type="button" class="q-btn" data-q="4">🙂</button>
-                <button type="button" class="q-btn" data-q="5">😴</button>
+        <!-- The Glowing Moon -->
+        <div class="moon-wrapper">
+            <div class="moon-glow" id="moon-glow"></div>
+            <div class="moon" id="moon">
+                <div class="crater c1"></div>
+                <div class="crater c2"></div>
+                <div class="crater c3"></div>
             </div>
-            
-            <button type="button" class="save-btn" onclick="saveSleep()">Log Sleep</button>
         </div>
+
+        <h2 class="sleep-title">How long did you drift?</h2>
+        
+        <!-- Custom Hours Slider -->
+        <div class="slider-container">
+            <div class="sleep-time-display" id="hours-display">7.5<span>h</span></div>
+            <input type="range" id="sleep-slider" min="3" max="12" step="0.5" value="7.5">
+            <div class="slider-labels">
+                <span>3h</span>
+                <span>12h</span>
+            </div>
+        </div>
+
+        <h2 class="sleep-title" style="margin-top: 20px;">Sleep Quality</h2>
+        
+        <!-- Star Rating -->
+        <div class="star-rating" id="star-rating">
+            <i class="fa-solid fa-star star" data-val="1"></i>
+            <i class="fa-solid fa-star star" data-val="2"></i>
+            <i class="fa-solid fa-star star" data-val="3"></i>
+            <i class="fa-solid fa-star star" data-val="4"></i>
+            <i class="fa-solid fa-star star" data-val="5"></i>
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="logSleep()">Rest at Camp</button>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-icon"><i class="fa-solid fa-moon"></i></div>
+        <h2>Rest Logged</h2>
+        <p id="success-xp">+80 XP · Restored Vitality</p>
     </div>
 
     <script>
-        let selectedQuality = 4;
+        let selectedQuality = 4; // Default to 4 stars
         const slider = document.getElementById('sleep-slider');
         const display = document.getElementById('hours-display');
-        const qButtons = document.querySelectorAll('.q-btn');
+        const stars = document.querySelectorAll('.star');
+        const moon = document.getElementById('moon');
+        const moonGlow = document.getElementById('moon-glow');
 
-        slider.addEventListener('input', (e) => display.textContent = e.target.value + 'h');
+        // --- 1. Twinkling Stars Background ---
+        const starsContainer = document.getElementById('stars-container');
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'bg-star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 5}s`;
+            star.style.animationDuration = `${2 + Math.random() * 3}s`;
+            starsContainer.appendChild(star);
+        }
 
-        qButtons.forEach(btn => {
-            if (btn.dataset.q == selectedQuality) btn.classList.add('selected');
-            btn.addEventListener('click', () => {
-                qButtons.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedQuality = parseInt(btn.dataset.q);
+        // --- 2. Slider Logic ---
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            display.innerHTML = `${val}<span>h</span>`;
+            
+            // Update slider fill percentage
+            const percent = ((val - 3) / (12 - 3)) * 100;
+            slider.style.background = `linear-gradient(90deg, var(--accent) ${percent}%, rgba(255,255,255,0.1) ${percent}%)`;
+            
+            if (window.Juice) Juice.vibrate(10);
+        });
+        // Trigger initial fill
+        slider.dispatchEvent(new Event('input'));
+
+        // --- 3. Star Rating Logic ---
+        stars.forEach(star => {
+            star.addEventListener('click', (e) => {
+                selectedQuality = parseInt(e.currentTarget.dataset.val);
+                updateStars(selectedQuality);
+                updateMoon(selectedQuality);
+                if (window.Juice) Juice.vibrate(20);
             });
         });
 
-        function saveSleep() {
+        function updateStars(val) {
+            stars.forEach(s => {
+                if (parseInt(s.dataset.val) <= val) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+
+        function updateMoon(val) {
+            // Map 1-5 quality to colors
+            const colors = {
+                1: '#555566', // Dull grey
+                2: '#7a7a99', // Light grey
+                3: '#a8b0c4', // Pale blue
+                4: '#e0e5ff', // Bright white
+                5: '#ffd700'  // Radiant gold
+            };
+            const color = colors[val];
+            moon.style.boxShadow = `inset -20px -20px 40px ${color}, 0 0 40px ${color}`;
+            moonGlow.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+        }
+
+        // Initial setup
+        updateStars(selectedQuality);
+        updateMoon(selectedQuality);
+
+        // --- 4. Submit Logic ---
+        function logSleep() {
             const hours = parseFloat(slider.value);
+            const btn = document.getElementById('submit-btn');
+            
+            btn.style.pointerEvents = 'none';
+            btn.textContent = 'Drifting...';
+
+            // Emit to Companion Engine
             if (window.Companion) {
                 Companion.emit({
-                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+                    id: crypto.randomUUID(),
                     type: 'SLEEP_LOGGED',
                     payload: { hours: hours, quality: selectedQuality }
                 });
             }
-            const btn = document.querySelector('.save-btn');
-            btn.textContent = 'Saved! Returning...';
-            btn.style.background = '#4ade80';
-            setTimeout(() => window.location.href = 'index.html', 1000);
+
+            // Juice
+            if (window.Juice) {
+                Juice.playPetSound();
+                Juice.vibrate([50, 100, 50, 100, 200]); // Heavy sleep vibration
+            }
+
+            // Show Success Overlay
+            document.getElementById('success-overlay').classList.add('active');
+
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
         }
     </script>
 </body>
