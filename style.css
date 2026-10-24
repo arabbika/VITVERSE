@@ -1,11 +1,13 @@
 /* ============================================================
    VITVERSE GLOBAL STYLESHEET
-   Consolidated for: Index, ChronoZen, SoulSync, DreamWeaver
+   Consolidated for: Index, ChronoZen, SoulSync, DreamWeaver, Tutorial
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@700;900&display=swap');
 
-/* --- 1. VARIABLES & RESET --- */
+/* ============================================================
+   1. VARIABLES & RESET
+   ============================================================ */
 :root {
   --bg-base: #0f111a;
   --bg-surface: rgba(30, 34, 53, 0.6);
@@ -45,7 +47,9 @@ body {
   min-height: 100dvh;
 }
 
-/* --- 2. SHARED UI COMPONENTS --- */
+/* ============================================================
+   2. SHARED UI COMPONENTS
+   ============================================================ */
 h1, h2, h3, .title-text {
   font-family: var(--font-display);
   letter-spacing: 1px;
@@ -411,3 +415,72 @@ input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
   color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
   transform: scale(1.1);
 }
+
+
+/* ============================================================
+   6. ONBOARDING TUTORIAL (SPIRIT GUIDE)
+   ============================================================ */
+.tutorial-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+  background: rgba(15, 17, 26, 0.85); backdrop-filter: blur(16px);
+  z-index: 2000; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+}
+
+.tutorial-overlay.active { opacity: 1; pointer-events: auto; }
+
+.tutorial-card {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 32px; padding: 40px 30px; width: 90%; max-width: 380px;
+  text-align: center; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  animation: float-card 6s ease-in-out infinite alternate;
+}
+
+@keyframes float-card {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+.tutorial-orb {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, #a8e8ff 0%, #00e5ff 60%, transparent 100%);
+  box-shadow: 0 0 40px var(--accent-glow); margin: 0 auto 24px auto;
+  animation: pulse-orb 3s infinite alternate;
+}
+
+.tutorial-step { display: none; }
+.tutorial-step.active { display: block; animation: fade-in-up 0.5s ease; }
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.tutorial-step h2 {
+  font-family: var(--font-display); font-size: 22px; color: var(--accent);
+  margin-bottom: 16px; letter-spacing: 1px;
+}
+
+.tutorial-step p {
+  font-family: var(--font-ui); font-size: 15px; color: var(--text-main);
+  line-height: 1.6; margin-bottom: 30px;
+}
+
+.tutorial-step strong { color: #fff; font-weight: 800; }
+
+.tutorial-controls {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 20px;
+}
+
+.skip-btn {
+  background: transparent; border: none; color: var(--text-muted);
+  font-size: 13px; cursor: pointer; transition: color 0.2s;
+}
+.skip-btn:hover { color: var(--text-main); }
+
+.next-btn {
+  background: var(--accent); color: #000; border: none;
+  padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 14px;
+  cursor: pointer; box-shadow: 0 0 15px var(--accent-glow); transition: transform 0.2s;
+}
+.next-btn:active { transform: scale(0.95); }
