@@ -1,16 +1,18 @@
 /**
- * Vitverse — Zen Sandbox Engine
+ * Vitverse — Zen Sandbox Engine (v2.0)
+ * Fixed: High-DPI scaling, mobile touch preventDefault, tool locking bug.
  */
 const ZenSandbox = (() => {
   const canvas = document.getElementById('zen-canvas');
   const ctx = canvas.getContext('2d');
-  const STORAGE_KEY = 'vitverse.zen.garden.v1';
+  const STORAGE_KEY = 'vitverse.zen.garden.v2';
   
   let isDrawing = false;
   let lastX = 0, lastY = 0;
-  let currentTool = 'rake'; // 'rake', 'stone', 'bonsai', 'pagoda'
-  let sessionTimer = null;
+  let currentTool = 'rake'; 
   let zenMinutes = 0;
+  let sessionTimer = null;
+  let dpr = window.devicePixelRatio || 1;
 
   // --- Audio Setup ---
   let audioCtx = null;
@@ -18,39 +20,43 @@ const ZenSandbox = (() => {
   let lastNoteTime = 0;
 
   function initAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) {
+      console.warn("Audio not supported", e);
+    }
   }
 
   function playNote(y, speed) {
     if (!audioCtx) return;
     const now = Date.now();
-    if (now - lastNoteTime < 100) return; // Throttle notes so it's not overwhelming
+    if (now - lastNoteTime < 100) return; 
     lastNoteTime = now;
 
-    // Map Y position to a note in the scale
-    const index = Math.floor((y / canvas.height) * scale.length);
+    const index = Math.floor((y / window.innerHeight) * scale.length);
     const freq = scale[Math.max(0, Math.min(scale.length - 1, index))];
 
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.value = freq;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.value = freq;
 
-    // Faster rake = louder note
-    const volume = Math.min(0.1, Math.max(0.01, speed / 1000));
-    
-    gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+      const volume = Math.min(0.1, Math.max(0.01, speed / 1000));
+      
+      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
 
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 1.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.5);
+    } catch(e) {}
   }
 
-  // --- Canvas Setup ---
+  // --- Canvas Setup (High DPI Support) ---
   function resizeCanvas() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
@@ -58,15 +64,22 @@ const ZenSandbox = (() => {
     const tempCtx = tempCanvas.getContext('2d');
     if (canvas.width > 0) tempCtx.drawImage(canvas, 0, 0);
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    
+    ctx.scale(dpr, dpr);
 
-    // Fill with sand color
     ctx.fillStyle = '#e8e2d2'; 
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-    if (tempCanvas.width > 0) ctx.drawImage(tempCanvas, 0, 0);
-    loadGarden();
+    if (tempCanvas.width > 0) {
+      ctx.drawImage(tempCanvas, 0, 0, window.innerWidth, window.innerHeight);
+    } else {
+      loadGarden();
+    }
   }
 
   // --- Drawing Logic ---
@@ -75,15 +88,15 @@ const ZenSandbox = (() => {
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
     
-    // Shadow
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.lineWidth = 6;
+    // Groove shadow
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
+    ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // Highlight
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    // Groove highlight
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 4;
     ctx.stroke();
 
@@ -96,26 +109,31 @@ const ZenSandbox = (() => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const icons = { stone: '🪨', bonsai: '🪴', pagoda: '🛕', blossom: '🌸' };
+    const icons = { stone: '🪨', bonsai: '🪴', blossom: '🌸' };
+    if (!icons[currentTool]) return; // Failsafe
+    
     ctx.fillText(icons[currentTool], x, y);
     
     // Deep gong sound
     if (audioCtx) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.value = 130; // Low C
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 2);
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = 130; 
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 2);
+      } catch(e) {}
     }
   }
 
   // --- Interaction Events ---
   function handleStart(e) {
+    if (e.cancelable) e.preventDefault(); // Stop mobile scrolling
     initAudio();
     const { x, y } = getPos(e);
     isDrawing = true;
@@ -130,16 +148,17 @@ const ZenSandbox = (() => {
 
   function handleMove(e) {
     if (!isDrawing || currentTool !== 'rake') return;
-    const { x, y } = getPos(e);
+    if (e.cancelable) e.preventDefault();
     
-    // Calculate speed for audio volume
+    const { x, y } = getPos(e);
     const dist = Math.hypot(x - lastX, y - lastY);
+    
     drawRake(x, y, dist);
     
     lastX = x; lastY = y;
   }
 
-  function handleEnd() {
+  function handleEnd(e) {
     if (isDrawing && currentTool === 'rake') saveGarden();
     isDrawing = false;
   }
@@ -163,7 +182,7 @@ const ZenSandbox = (() => {
     if (saved) {
       const img = new Image();
       img.onload = () => {
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, window.innerWidth, window.innerHeight);
       };
       img.src = saved;
     }
@@ -172,7 +191,7 @@ const ZenSandbox = (() => {
   function clearGarden() {
     if (confirm("Smooth the sand and remove all objects?")) {
       ctx.fillStyle = '#e8e2d2';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
       localStorage.removeItem(STORAGE_KEY);
     }
   }
@@ -183,19 +202,17 @@ const ZenSandbox = (() => {
       zenMinutes++;
       document.getElementById('zen-timer').textContent = `${zenMinutes}m`;
       
-      // Give XP every minute
       if (window.Companion) {
         Companion.emit({ id: crypto.randomUUID(), type: 'ZEN_SESSION' });
         if (window.Juice) Juice.playPetSound();
       }
       
-      // Update HUD text to show reward
       const toast = document.getElementById('zen-toast');
       toast.textContent = "+50 XP · +10 Calm";
       toast.style.opacity = 1;
       setTimeout(() => toast.style.opacity = 0, 2000);
 
-    }, 60000); // 1 minute
+    }, 60000); 
   }
 
   // --- Initialization ---
@@ -212,9 +229,11 @@ const ZenSandbox = (() => {
       canvas.addEventListener('touchmove', handleMove, { passive: false });
       window.addEventListener('touchend', handleEnd);
 
-      // Tool Selection
       document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+          // CRITICAL FIX: Prevent "Clear" from setting tool to undefined
+          if (!e.currentTarget.dataset.tool) return; 
+          
           document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
           e.currentTarget.classList.add('active');
           currentTool = e.currentTarget.dataset.tool;
