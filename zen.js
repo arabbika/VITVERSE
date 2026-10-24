@@ -1,9 +1,11 @@
 /**
- * Vitverse — Zen Sandbox Engine (Isometric v2.0)
- * Includes: Sand texture, Wooden frame, Multi-tooth rake, Drop shadows.
+ * Vitverse — Zen Sandbox Engine (Isometric v3.0)
+ * Fixed: Offscreen sand canvas so rake marks persist, fixed centering.
  */
 const ZenSandbox = (() => {
   let canvas, ctx;
+  let sandCanvas, sandCtx; // Hidden canvas for the sand and rake marks
+  
   let isDrawing = false;
   let lastX = 0, lastY = 0;
   let currentTool = 'rake'; 
@@ -11,7 +13,7 @@ const ZenSandbox = (() => {
   // Grid Settings
   const TILE_W = 64;
   const TILE_H = 32;
-  const GRID_SIZE = 7; // How many tiles from the center
+  const GRID_SIZE = 8; // Slightly larger grid
   let offsetX = 0, offsetY = 0;
 
   const images = {};
@@ -94,49 +96,47 @@ const ZenSandbox = (() => {
     });
   }
 
-  // --- Drawing the Environment ---
-  function drawSandBase() {
+  // --- Drawing the Environment (ONLY DRAWN ONCE) ---
+  function drawInitialSandAndFrame() {
     // 1. Base sand color
-    ctx.fillStyle = '#e8dcc4';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    sandCtx.fillStyle = '#e8dcc4';
+    sandCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Procedural noise for sand grains (performance optimized)
-    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    // 2. Procedural noise for sand grains
+    sandCtx.fillStyle = 'rgba(0,0,0,0.04)';
     for(let i=0; i<canvas.width; i+=6) {
       for(let j=0; j<canvas.height; j+=6) {
         if (Math.random() > 0.5) {
-          ctx.fillRect(i, j, 1.5, 1.5);
+          sandCtx.fillRect(i, j, 1.5, 1.5);
         }
       }
     }
-  }
 
-  function drawWoodenFrame() {
+    // 3. Draw Wooden Frame
     const pTop = toScreen(0, -GRID_SIZE);
     const pRight = toScreen(GRID_SIZE, 0);
     const pBottom = toScreen(0, GRID_SIZE);
     const pLeft = toScreen(-GRID_SIZE, 0);
 
-    // Draw Wooden Border
-    ctx.beginPath();
-    ctx.moveTo(pTop.x, pTop.y);
-    ctx.lineTo(pRight.x, pRight.y);
-    ctx.lineTo(pBottom.x, pBottom.y);
-    ctx.lineTo(pLeft.x, pLeft.y);
-    ctx.closePath();
+    sandCtx.beginPath();
+    sandCtx.moveTo(pTop.x, pTop.y);
+    sandCtx.lineTo(pRight.x, pRight.y);
+    sandCtx.lineTo(pBottom.x, pBottom.y);
+    sandCtx.lineTo(pLeft.x, pLeft.y);
+    sandCtx.closePath();
 
-    ctx.strokeStyle = '#5c4033'; // Wood color
-    ctx.lineWidth = 32;
-    ctx.lineJoin = 'round';
-    ctx.stroke();
+    sandCtx.strokeStyle = '#5c4033'; // Wood color
+    sandCtx.lineWidth = 32;
+    sandCtx.lineJoin = 'round';
+    sandCtx.stroke();
 
     // Inner Shadow for depth
-    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-    ctx.lineWidth = 6;
-    ctx.stroke();
+    sandCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+    sandCtx.lineWidth = 6;
+    sandCtx.stroke();
   }
 
-  // --- The Multi-Tooth Rake ---
+  // --- The Multi-Tooth Rake (DRAWS TO THE SAND CANVAS) ---
   function drawRake(x, y, speed) {
     const angle = Math.atan2(y - lastY, x - lastX);
     const perpAngle = angle + Math.PI / 2;
@@ -147,20 +147,20 @@ const ZenSandbox = (() => {
       const ox = Math.cos(perpAngle) * offset;
       const oy = Math.sin(perpAngle) * offset;
 
-      ctx.beginPath();
-      ctx.moveTo(lastX + ox, lastY + oy);
-      ctx.lineTo(x + ox, y + oy);
+      sandCtx.beginPath();
+      sandCtx.moveTo(lastX + ox, lastY + oy);
+      sandCtx.lineTo(x + ox, y + oy);
       
       // Groove Shadow
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.stroke();
+      sandCtx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+      sandCtx.lineWidth = 4;
+      sandCtx.lineCap = 'round';
+      sandCtx.stroke();
 
       // Groove Highlight
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      sandCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      sandCtx.lineWidth = 2;
+      sandCtx.stroke();
     }
 
     if (Math.random() < 0.2) playNote(y, speed);
@@ -168,9 +168,8 @@ const ZenSandbox = (() => {
 
   // --- Render Loop ---
   function render() {
-    // 1. Reset environment
-    drawSandBase();
-    drawWoodenFrame();
+    // 1. Draw the static sand + raked lines
+    ctx.drawImage(sandCanvas, 0, 0);
 
     // 2. Sort objects by depth (Y-axis)
     objects.sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
@@ -181,7 +180,6 @@ const ZenSandbox = (() => {
       const img = images[obj.type];
       
       if (img && img.complete && img.naturalWidth > 0) {
-        // Scale object based on type
         const scale = obj.type === 'pond' ? 0.35 : 0.22; 
         const sw = img.naturalWidth * scale;
         const sh = img.naturalHeight * scale;
@@ -211,17 +209,17 @@ const ZenSandbox = (() => {
 
     const grid = toGrid(clientX - rect.left, clientY - rect.top);
 
-    // Restrict to inside the wooden frame
+    // Restrict placement to inside the grid
     if (Math.abs(grid.gx) > GRID_SIZE || Math.abs(grid.gy) > GRID_SIZE) return;
 
     if (currentTool !== 'rake') {
-      // Remove existing object at this tile to prevent overlapping
+      // Remove existing object at this tile
       const existingIdx = objects.findIndex(o => o.gx === grid.gx && o.gy === grid.gy);
       if (existingIdx > -1) objects.splice(existingIdx, 1);
       
       // Add new object
       objects.push({ gx: grid.gx, gy: grid.gy, type: currentTool });
-      playNote(clientY, 10); // Play sound on drop
+      playNote(clientY, 10); 
     } else {
       isDrawing = true;
       lastX = clientX - rect.left;
@@ -259,10 +257,19 @@ const ZenSandbox = (() => {
     
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    // Create the hidden sand canvas
+    sandCanvas = document.createElement('canvas');
+    sandCanvas.width = canvas.width;
+    sandCanvas.height = canvas.height;
+    sandCtx = sandCanvas.getContext('2d');
     
-    // Center the isometric grid
+    // Center the grid perfectly on the screen
     offsetX = canvas.width / 2;
-    offsetY = canvas.height / 5;
+    offsetY = canvas.height / 2 - 50; // Shifted up slightly for the toolbar
+
+    // Draw the sand and the wooden frame ONCE
+    drawInitialSandAndFrame();
 
     // Toolbar Setup
     document.querySelectorAll('.tool-btn').forEach(btn => {
@@ -276,10 +283,13 @@ const ZenSandbox = (() => {
 
     // Clear Button
     document.getElementById('zen-clear').addEventListener('click', () => {
-      if (confirm("Clear the garden?")) objects.length = 0;
+      if (confirm("Clear the garden?")) {
+        objects.length = 0;
+        drawInitialSandAndFrame(); // Reset the sand too!
+      }
     });
 
-    // Event Listeners (Mouse & Touch)
+    // Event Listeners
     canvas.addEventListener('mousedown', handleStart);
     canvas.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
