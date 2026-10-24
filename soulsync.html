@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SoulSync — Vitverse</title>
+    <title>SoulSync — Vibe Check</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
+    
+    <!-- Engine -->
     <script src="companion.js"></script>
+    <script src="juice.js"></script>
+    
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -22,98 +28,184 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
-    <style>
-        body { transition: background 0.8s ease; background: #0f111a; }
-        .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s ease; }
-        .logo-link:active { transform: scale(0.95); }
-        .logo-image { width: 160px; height: auto; display: block; }
-        
-        .soul-card {
-            background: var(--bg-surface); border: 1px solid var(--border-glass);
-            border-radius: 24px; padding: 30px; width: 100%; max-width: 400px;
-            backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        h2 { color: var(--accent); margin-top: 0; font-size: 20px; font-family: var(--font-display); letter-spacing: 1px;}
-        
-        .mood-grid { display: flex; justify-content: center; gap: 15px; margin: 20px 0 30px 0; }
-        .mood-btn {
-            background: rgba(0,0,0,0.3); border: 1px solid transparent; border-radius: 50%; width: 60px; height: 60px;
-            font-size: 30px; cursor: pointer; transition: all 0.2s ease; opacity: 0.5;
-        }
-        .mood-btn.selected { opacity: 1; border-color: var(--accent); background: rgba(0, 229, 255, 0.1); transform: scale(1.1); box-shadow: 0 0 15px var(--accent-glow); }
-        
-        textarea {
-            width: 100%; height: 100px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass);
-            border-radius: 12px; padding: 15px; color: var(--text-main); font-family: var(--font-ui);
-            resize: none; margin-bottom: 20px; outline: none; transition: border-color 0.2s;
-        }
-        textarea:focus { border-color: var(--accent); }
-        
-        .save-btn {
-            background: var(--accent); color: #000; border: none; padding: 15px 40px; border-radius: 16px;
-            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
-            box-shadow: 0 0 15px var(--accent-glow); transition: transform 0.2s ease;
-        }
-        .save-btn:active { transform: scale(0.95); }
-    </style>
 </head>
-<body>
-    <div class="wrapper" style="align-items: center;">
-        <a href="index.html" class="logo-link"><img src="logo.png" alt="VITVERSE" class="logo-image"></a>
+<body id="body-bg">
+
+    <!-- Particle Canvas for the Submit Effect -->
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="top-bar">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="title-text">SOULSYNC</div>
+        <div style="width: 20px;"></div>
+    </div>
+
+    <div class="soul-container">
         
-        <div class="soul-card">
-            <h2>✨ SoulSync</h2>
-            <p style="color: var(--text-muted); font-size: 14px;">How is your soul feeling?</p>
-            
-            <div class="mood-grid" id="mood-grid">
-                <button type="button" class="mood-btn" data-m="1">😔</button>
-                <button type="button" class="mood-btn" data-m="2">😐</button>
-                <button type="button" class="mood-btn" data-m="3">🙂</button>
-                <button type="button" class="mood-btn" data-m="4">😄</button>
-                <button type="button" class="mood-btn" data-m="5">🤩</button>
-            </div>
-            
-            <textarea id="reflection" placeholder="Write a quick reflection (optional)..."></textarea>
-            <button type="button" class="save-btn" onclick="saveSoul()">Save Check-in</button>
+        <div class="mood-display">
+            <div class="glow-orb" id="glow-orb"></div>
+            <div class="mood-emoji" id="mood-emoji">🙂</div>
+            <div class="mood-label" id="mood-label">Content</div>
         </div>
+
+        <div class="mood-slider">
+            <button class="mood-btn" data-mood="1" data-color="#1a1a2e" data-emoji="😔">😔</button>
+            <button class="mood-btn" data-mood="2" data-color="#1a1a24" data-emoji="😐">😐</button>
+            <button class="mood-btn active" data-mood="3" data-color="#1e2a38" data-emoji="🙂">🙂</button>
+            <button class="mood-btn" data-mood="4" data-color="#2a1e38" data-emoji="😄">😄</button>
+            <button class="mood-btn" data-mood="5" data-color="#382a1e" data-emoji="🤩">🤩</button>
+        </div>
+
+        <div class="reflection-card">
+            <textarea id="reflection" placeholder="Write a quick reflection (optional)..."></textarea>
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="submitSoul()">Release Thought</button>
+    </div>
+
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+        <h2>Thought Released</h2>
+        <p id="success-xp">+20 XP · +3 Mood</p>
     </div>
 
     <script>
         let selectedMood = 3;
+        let currentColor = '#1e2a38';
+        const body = document.getElementById('body-bg');
+        const orb = document.getElementById('glow-orb');
+        const emojiDisplay = document.getElementById('mood-emoji');
+        const labelDisplay = document.getElementById('mood-label');
         const mButtons = document.querySelectorAll('.mood-btn');
-        const body = document.body;
 
-        const themes = {
-            1: 'radial-gradient(circle at center, #1a1a2e 0%, #0f111a 100%)',
-            2: 'radial-gradient(circle at center, #1a1a24 0%, #0f111a 100%)',
-            3: 'radial-gradient(circle at center, #1e2a38 0%, #0f111a 100%)',
-            4: 'radial-gradient(circle at center, #2a1e38 0%, #0f111a 100%)',
-            5: 'radial-gradient(circle at center, #382a1e 0%, #0f111a 100%)'
-        };
+        const moodLabels = { 1: 'Low', 2: 'Okay', 3: 'Content', 4: 'Great', 5: 'Amazing' };
+        const orbColors = { 1: '#78829e', 2: '#8ec8e8', 3: '#7fd8ff', 4: '#a8e8ff', 5: '#ffd700' };
+
+        // Initial setup
+        body.style.background = currentColor;
 
         mButtons.forEach(btn => {
-            if (btn.dataset.m == selectedMood) btn.classList.add('selected');
-            btn.addEventListener('click', () => {
-                mButtons.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedMood = parseInt(btn.dataset.m);
-                body.style.background = themes[selectedMood];
+            btn.addEventListener('click', (e) => {
+                // Update UI
+                mButtons.forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                
+                selectedMood = parseInt(e.currentTarget.dataset.mood);
+                currentColor = e.currentTarget.dataset.color;
+                
+                // Update Text & Emoji
+                emojiDisplay.textContent = e.currentTarget.dataset.emoji;
+                labelDisplay.textContent = moodLabels[selectedMood];
+                
+                // Update Background & Orb
+                body.style.background = `radial-gradient(circle at center, ${currentColor} 0%, #0f111a 100%)`;
+                orb.style.background = `radial-gradient(circle, ${orbColors[selectedMood]} 0%, transparent 70%)`;
+                orb.style.boxShadow = `0 0 60px ${orbColors[selectedMood]}`;
+                
+                // Haptics
+                if (window.Juice) Juice.vibrate(20);
             });
         });
 
-        function saveSoul() {
+        // --- Particle System for Submit ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 1) * 8 - 2; // Fly upwards
+                this.size = Math.random() * 4 + 1;
+                this.color = color;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- Submit Logic ---
+        function submitSoul() {
             const text = document.getElementById('reflection').value.trim();
+            const btn = document.getElementById('submit-btn');
+            
+            // Disable button to prevent double submit
+            btn.style.pointerEvents = 'none';
+            btn.textContent = 'Releasing...';
+
+            // Trigger Particle Burst
+            const rect = btn.getBoundingClientRect();
+            const startX = rect.left + rect.width / 2;
+            const startY = rect.top;
+
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle(startX, startY, orbColors[selectedMood]));
+            }
+
+            // Emit to Companion Engine
             if (window.Companion) {
-                Companion.emit({ id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + '-m', type: 'MOOD_CHECKIN', payload: { value: selectedMood } });
+                // 1. Mood Check-in
+                Companion.emit({
+                    id: crypto.randomUUID(),
+                    type: 'MOOD_CHECKIN',
+                    payload: { value: selectedMood }
+                });
+
+                // 2. Reflection (if typed)
                 if (text.length > 0) {
-                    Companion.emit({ id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + '-r', type: 'REFLECTION_WRITTEN', payload: { text: text } });
+                    Companion.emit({
+                        id: crypto.randomUUID(),
+                        type: 'REFLECTION_WRITTEN',
+                        payload: { text: text }
+                    });
                 }
             }
-            const btn = document.querySelector('.save-btn');
-            btn.textContent = 'Saved! Returning...';
-            btn.style.background = '#4ade80';
-            setTimeout(() => window.location.href = 'index.html', 1000);
+
+            // Juice
+            if (window.Juice) {
+                Juice.playPetSound();
+                Juice.vibrate([50, 50, 50]);
+            }
+
+            // Show Success Overlay
+            const xpText = text.length > 0 ? '+70 XP · +3 Mood' : '+20 XP';
+            document.getElementById('success-xp').textContent = xpText;
+            document.getElementById('success-overlay').classList.add('active');
+
+            // Redirect after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
         }
     </script>
 </body>
