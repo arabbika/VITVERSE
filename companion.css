@@ -2,23 +2,13 @@
    VITVERSE COMPANION STYLESHEET
    ============================================================ */
 
-/* --- Base Companion --- */
 .companion {
-  width: 55%;
-  height: 55%;
-  display: block;
-  z-index: 10; 
-  position: relative;
-  cursor: pointer;
-  filter: drop-shadow(0 0 var(--glow) var(--accent-glow));
+  width: 50%; height: 50%; display: block; z-index: 10; position: relative;
+  cursor: pointer; filter: drop-shadow(0 0 var(--glow) var(--accent-glow));
   transition: filter 0.8s ease, transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   animation: blob-idle 4s ease-in-out infinite alternate;
 }
-
-@keyframes blob-idle {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-8px); }
-}
+@keyframes blob-idle { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
 
 /* Mood Colors */
 .companion[data-mood="low"] { --body-inner: #a8b0c4; --body-outer: #78829e; }
@@ -26,13 +16,13 @@
 .companion[data-mood="content"] { --body-inner: #7fd8ff; --body-outer: #3a8eef; }
 .companion[data-mood="radiant"] { --body-inner: #a8e8ff; --body-outer: #00e5ff; }
 
-/* Motion Layers */
+/* Motion */
 .companion .bob-group { animation: companion-bob var(--bob-duration) ease-in-out infinite; transform-origin: 100px 170px; }
 .companion .breath-group { animation: companion-breathe var(--breath-duration) ease-in-out infinite; transform-origin: 100px 115px; }
 @keyframes companion-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes companion-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.01); } }
 
-/* Eyes & Mouth */
+/* Face */
 .companion .eye { transform-box: fill-box; transform-origin: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .companion[data-mood="radiant"] .eye { transform: scaleY(1.1); }
 .companion[data-mood="settled"] .eye { transform: scaleY(0.7); }
@@ -55,24 +45,14 @@
 .companion.is-resting .mouth-settled { display: inline !important; }
 .companion.is-resting { animation-play-state: paused; filter: brightness(0.6) drop-shadow(0 0 2px var(--accent)); }
 
-/* --- The Sanctuary --- */
+/* Sanctuary */
 .sanctuary-stage {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 340px;
-  margin: 0 auto;
-  border-radius: 32px;
-  border: 1px solid var(--border-glass);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative; width: 100%; aspect-ratio: 1; max-width: 340px; margin: 0 auto;
+  border-radius: 32px; border: 1px solid var(--border-glass); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
   box-shadow: inset 0 20px 40px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.3);
-  transition: background 1.5s ease;
-  background: linear-gradient(180deg, #1e2235 0%, #0d101a 100%);
+  transition: background 1.5s ease; background: linear-gradient(180deg, #1e2235 0%, #0d101a 100%);
 }
-
 .sanctuary-stage[data-dominant="rest"] { background: linear-gradient(180deg, #1e1a3e 0%, #0d0a1a 100%); }
 .sanctuary-stage[data-dominant="energy"] { background: linear-gradient(180deg, #3e2a1a 0%, #1a100d 100%); }
 .sanctuary-stage[data-dominant="calm"] { background: linear-gradient(180deg, #1a3e3e 0%, #0d1a1a 100%); }
@@ -84,11 +64,7 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.1); z-index: 1; pointer-events: none;
 }
 
-/* Aura Ring */
-.aura-ring {
-  position: absolute; width: 80%; height: 80%; border-radius: 50%;
-  z-index: 1; transition: all 1s ease; opacity: 0.4; pointer-events: none;
-}
+.aura-ring { position: absolute; width: 80%; height: 80%; border-radius: 50%; z-index: 1; transition: all 1s ease; opacity: 0.4; pointer-events: none; }
 .sanctuary-stage[data-dominant="rest"] .aura-ring { box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3); background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%); animation: cosmic-pulse 8s infinite alternate; }
 .sanctuary-stage[data-dominant="energy"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3); background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%); animation: electric-shake 0.5s infinite; }
 .sanctuary-stage[data-dominant="calm"] .aura-ring { box-shadow: 0 0 80px 10px rgba(0, 200, 255, 0.3); background: radial-gradient(circle, rgba(0,200,255,0.1) 0%, transparent 70%); animation: water-ripple 4s infinite alternate; }
@@ -98,69 +74,52 @@
 @keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
 @keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
 
-/* --- SPATIAL INVENTORY (RING vs EQUIPPED) --- */
+/* --- SPATIAL INVENTORY --- */
 .item-slot {
   position: absolute;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth flying animation */
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   z-index: 15;
 }
+.item-slot img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.item-slot.locked { filter: brightness(0) opacity(0.2); cursor: not-allowed; pointer-events: none; }
+.item-slot.unlocked:hover { transform: scale(1.15) !important; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4)); }
 
-.item-slot img {
-  width: 100%; height: 100%; object-fit: contain; pointer-events: none;
-}
-
-/* Locked State */
-.item-slot.locked {
-  filter: brightness(0) opacity(0.2);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Unlocked State (Ring Hover) */
-.item-slot.unlocked:hover {
-  transform: scale(1.15) !important;
-  filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
-}
-
-/* --- THE FLOATING RING (Unequipped State) --- */
+/* THE UNIFORM RING (Unequipped) */
 .item-slot.in-ring {
-  width: 45px; height: 45px;
+  width: 48px; height: 48px;
   opacity: 0.8;
+  transform: none !important; /* Force same size */
 }
 
-.slot-halo.in-ring { top: 12%; left: 15%; }
-.slot-crown.in-ring { top: 12%; right: 15%; }
-.slot-scarf.in-ring { top: 45%; left: 5%; }
-.slot-lamp.in-ring { top: 45%; right: 5%; }
-.slot-plant.in-ring { bottom: 15%; left: 10%; }
-.slot-rug.in-ring { bottom: 15%; right: 10%; }
+/* Ring Positions */
+.slot-crown.in-ring { top: 10%; left: 50%; margin-left: -24px; }
+.slot-scarf.in-ring { top: 25%; left: 15%; }
+.slot-tea.in-ring { top: 25%; right: 15%; }
+.slot-gate.in-ring { top: 40%; left: 5%; }
+.slot-lamp.in-ring { top: 40%; right: 5%; }
+.slot-crystal.in-ring { bottom: 20%; left: 15%; }
+.slot-plant.in-ring { bottom: 20%; right: 15%; }
+.slot-cat.in-ring { bottom: 5%; left: 50%; margin-left: -24px; }
 
-/* --- EQUIPPED POSITIONS (Flown to Blob) --- */
-.item-slot.equipped {
-  transform: translateX(-50%) !important;
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
-  z-index: 25;
-}
+/* THE EQUIPPED POSITIONS (Flown to Blob) */
+.item-slot.equipped { filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
 
-/* Halo */
-.slot-halo.equipped { top: 8%; left: 50%; width: 80px; height: 40px; z-index: 30; animation: float-halo 3s infinite; }
+/* Head & Neck */
+.slot-crown.equipped { top: 10%; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; z-index: 25; }
+.slot-scarf.equipped { top: 52%; left: 50%; transform: translateX(-50%); width: 80px; height: 40px; z-index: 20; }
 
-/* Crown */
-.slot-crown.equipped { top: 12%; left: 50%; width: 70px; height: 70px; z-index: 30; }
+/* Background Decor */
+.slot-rug.equipped { bottom: 2%; left: 50%; transform: translateX(-50%); width: 160px; height: 80px; z-index: 2; }
+.slot-gate.equipped { top: 5%; left: 50%; transform: translateX(-50%); width: 120px; height: 80px; z-index: 3; }
+.slot-lamp.equipped { top: 15%; right: 15%; transform: none; width: 50px; height: 70px; z-index: 4; } /* Scaled down */
+.slot-plant.equipped { bottom: 15%; left: 15%; transform: none; width: 60px; height: 60px; z-index: 5; }
 
-/* Scarf */
-.slot-scarf.equipped { top: 55%; left: 50%; width: 90px; height: 45px; z-index: 20; }
-
-/* Decor */
-.slot-lamp.equipped { top: 15%; right: 5%; transform: none !important; width: 70px; height: 100px; z-index: 5; }
-.slot-plant.equipped { bottom: 15%; left: 5%; transform: none !important; width: 80px; height: 80px; z-index: 5; }
-
-/* Rug (Under Blob) */
-.slot-rug.equipped { bottom: 5%; left: 50%; width: 180px; height: 90px; z-index: 2; }
-
-@keyframes float-halo { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -8px); } }
+/* Foreground Decor */
+.slot-cat.equipped { bottom: 10%; right: 15%; transform: none; width: 60px; height: 60px; z-index: 18; }
+.slot-crystal.equipped { bottom: 10%; left: 15%; transform: none; width: 50px; height: 50px; z-index: 18; }
+.slot-tea.equipped { top: 45%; right: 20%; transform: none; width: 60px; height: 60px; z-index: 18; }
 
 /* --- UI & HUD --- */
 .hud-container {
@@ -219,11 +178,9 @@
 .confetti { position: absolute; top: -10px; width: 8px; height: 8px; border-radius: 2px; animation: fall 3s linear forwards; }
 @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
-/* Whisper Absorption */
 .absorb-particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ff8fb8; box-shadow: 0 0 10px #ff8fb8; animation: absorb 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; z-index: 5; pointer-events: none; }
 @keyframes absorb { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
 
-/* Game Plan UI */
 .companion-memory.is-expanded { max-width: 100%; padding: 0; background: transparent; border: none; box-shadow: none; backdrop-filter: none; cursor: default; }
 .companion-memory.is-expanded:hover { transform: none; background: transparent; }
 .aura-plan { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; margin: 0 auto; animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
