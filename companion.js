@@ -1,6 +1,6 @@
 /**
- * Vitverse Companion — Real-Life RPG Engine (v3.1)
- * Added: dominantStat calculation for Dynamic Auras
+ * Vitverse Companion — Real-Life RPG Engine (v3.2)
+ * Added: ZEN_SESSION for the Zen Sandbox
  */
 const Companion = (() => {
   const KEY = 'vitverse.companion.v3'; // Kept as v3 to preserve user data
@@ -12,14 +12,13 @@ const Companion = (() => {
     dailyCap:  { calm: 25, energy: 20, rest: 25, mood: 15 },
     maxEvents: 200,
     maxSeen:   50,
-    maxDecayH: 720,
+    maxDecayH: 720, // 30 days
   };
 
   const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
   const dateKey = (d = new Date()) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Get Guild from URL if it exists
   const urlParams = new URLSearchParams(window.location.search);
   const guildParam = urlParams.get('guild');
 
@@ -75,6 +74,10 @@ const Companion = (() => {
       xp: 20 }) },
     REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ mood: 3, xp: 50 }) },
     EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ energy: 8, mood: 2, xp: 75, lootCheck: true }) },
+    
+    // --- New Zen Sandbox Rule ---
+    ZEN_SESSION:         { m: 'zen',         d: () => ({ calm: 10, xp: 50 }) }, 
+    
     EQUIP_WEARABLE:      { m: 'inventory',   d: () => ({}) }, 
     TOGGLE_DECOR:        { m: 'inventory',   d: () => ({}) }, 
     LINK_GUILD:          { m: 'guild',       d: () => ({}) },
@@ -137,7 +140,7 @@ const Companion = (() => {
     let newEquipped = { ...s.equipped };
     
     if (hasLootCheck && Math.random() < 0.3) { // 30% drop rate
-      const dropDecor = Math.random() < 0.5; // 50/50 chance
+      const dropDecor = Math.random() < 0.5;
       if (dropDecor) {
         const avail = LOOT_DECOR.filter(i => !newInventory.decor.includes(i));
         if (avail.length > 0) {
@@ -183,7 +186,7 @@ const Companion = (() => {
       { name: 'rest', val: v.rest },
       { name: 'mood', val: v.mood }
     ];
-    auraStats.sort((a, b) => b.val - a.val); // Sort highest to lowest
+    auraStats.sort((a, b) => b.val - a.val); 
     const dominantStat = auraStats[0].name;
 
     return {
