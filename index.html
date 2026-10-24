@@ -26,7 +26,6 @@
         }
     </script>
     <style>
-        /* Moved to top-left to avoid overlap */
         .zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
         @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     </style>
@@ -48,10 +47,9 @@
                 <span>Welcome back. What's on your mind?</span>
             </div>
             
-            <!-- THE SANCTUARY -->
+            <!-- THE SANCTUARY (Only holds the Blob and Equipped Items) -->
             <div class="sanctuary-stage" id="sanctuary">
                 
-                <!-- Entry to Zen Sandbox (Top Left) -->
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
 
                 <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)">
@@ -59,15 +57,6 @@
                 </button>
 
                 <div class="aura-ring"></div>
-                
-                <!-- SPATIAL INVENTORY SLOTS -->
-                <div id="slot-rug" class="item-slot slot-rug in-ring locked" onclick="handleSlotClick('rug')"></div>
-                <div id="slot-gate" class="item-slot slot-gate in-ring locked" onclick="handleSlotClick('gate')"></div>
-                <div id="slot-lamp" class="item-slot slot-lamp in-ring locked" onclick="handleSlotClick('lamp')"></div>
-                <div id="slot-plant" class="item-slot slot-plant in-ring locked" onclick="handleSlotClick('plant')"></div>
-                <div id="slot-cat" class="item-slot slot-cat in-ring locked" onclick="handleSlotClick('cat')"></div>
-                <div id="slot-crystal" class="item-slot slot-crystal in-ring locked" onclick="handleSlotClick('crystal')"></div>
-                <div id="slot-tea" class="item-slot slot-tea in-ring locked" onclick="handleSlotClick('tea')"></div>
                 
                 <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -99,9 +88,21 @@
                     </g>
                 </svg>
 
-                <!-- Wearables -->
-                <div id="slot-scarf" class="item-slot slot-scarf in-ring locked" onclick="handleSlotClick('scarf')"></div>
-                <div id="slot-crown" class="item-slot slot-crown in-ring locked" onclick="handleSlotClick('crown')"></div>
+                <!-- EQUIPPED ITEMS (Hidden until toggled) -->
+                <div id="eq-rug" class="item-slot slot-rug"></div>
+                <div id="eq-gate" class="item-slot slot-gate"></div>
+                <div id="eq-lamp" class="item-slot slot-lamp"></div>
+                <div id="eq-plant" class="item-slot slot-plant"></div>
+                <div id="eq-cat" class="item-slot slot-cat"></div>
+                <div id="eq-crystal" class="item-slot slot-crystal"></div>
+                <div id="eq-tea" class="item-slot slot-tea"></div>
+                <div id="eq-scarf" class="item-slot slot-scarf"></div>
+                <div id="eq-crown" class="item-slot slot-crown"></div>
+            </div>
+
+            <!-- NEW: INVENTORY DOCK -->
+            <div class="inventory-dock" id="inventory-dock">
+                <!-- Populated by JavaScript -->
             </div>
 
             <!-- AI Chat Bar -->
@@ -160,15 +161,9 @@
             const isWearable = ['crown', 'scarf'].includes(item);
             
             if (isWearable) {
-                const isUnlocked = view.inventory.wearables.includes(item);
-                if (!isUnlocked) return; 
-                
                 const isEquipped = view.equipped.wearable === item;
                 Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: isEquipped ? null : item } });
             } else {
-                const isUnlocked = view.inventory.decor.includes(item);
-                if (!isUnlocked) return;
-                
                 const isEquipped = view.equipped.decor.includes(item);
                 Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } });
             }
@@ -198,24 +193,39 @@
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
 
-            const slots = ['crown', 'scarf', 'plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
-            slots.forEach(item => {
-                const el = document.getElementById(`slot-${item}`);
-                if (!el) return;
-                
+            const allItems = ['crown', 'scarf', 'plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
+            const dock = document.getElementById('inventory-dock');
+            dock.innerHTML = '';
+
+            allItems.forEach(item => {
                 const isWearable = ['crown', 'scarf'].includes(item);
                 const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
                 const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
+                
+                // 1. Update the Equipped Item on the Blob
+                const eqEl = document.getElementById(`eq-${item}`);
+                if (eqEl) {
+                    eqEl.innerHTML = `<img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none; font-size:28px;">${itemIcons[item]}</span>`;
+                    if (isEquipped) {
+                        eqEl.classList.add('visible');
+                    } else {
+                        eqEl.classList.remove('visible');
+                    }
+                }
 
-                el.innerHTML = `
-                    <img src="assets/${item}.png" alt="${item}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <span style="display:none; font-size:24px; width:100%; height:100%; align-items:center; justify-content:center;">${itemIcons[item]}</span>
+                // 2. Build the Inventory Dock Item
+                const dockItem = document.createElement('div');
+                dockItem.className = `dock-item ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'active' : ''}`;
+                dockItem.innerHTML = `
+                    <img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span style="display:none; font-size:20px;">${itemIcons[item]}</span>
                 `;
                 
-                let classes = `item-slot slot-${item} `;
-                classes += isUnlocked ? 'unlocked ' : 'locked ';
-                classes += isEquipped ? 'equipped' : 'in-ring';
-                el.className = classes;
+                if (isUnlocked) {
+                    dockItem.onclick = () => handleSlotClick(item);
+                }
+                
+                dock.appendChild(dockItem);
             });
         }
 
