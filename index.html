@@ -47,7 +47,7 @@
                 <span>Welcome back. What's on your mind?</span>
             </div>
             
-            <!-- THE SANCTUARY (Only holds the Blob and Equipped Items) -->
+            <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
@@ -88,19 +88,19 @@
                     </g>
                 </svg>
 
-                <!-- EQUIPPED ITEMS (Hidden until toggled) -->
-                <div id="eq-rug" class="item-slot slot-rug"></div>
-                <div id="eq-gate" class="item-slot slot-gate"></div>
-                <div id="eq-lamp" class="item-slot slot-lamp"></div>
-                <div id="eq-plant" class="item-slot slot-plant"></div>
-                <div id="eq-cat" class="item-slot slot-cat"></div>
-                <div id="eq-crystal" class="item-slot slot-crystal"></div>
-                <div id="eq-tea" class="item-slot slot-tea"></div>
-                <div id="eq-scarf" class="item-slot slot-scarf"></div>
+                <!-- EQUIPPED ITEMS (Pop into the ring when selected) -->
                 <div id="eq-crown" class="item-slot slot-crown"></div>
+                <div id="eq-gate" class="item-slot slot-gate"></div>
+                <div id="eq-tea" class="item-slot slot-tea"></div>
+                <div id="eq-lamp" class="item-slot slot-lamp"></div>
+                <div id="eq-cat" class="item-slot slot-cat"></div>
+                <div id="eq-plant" class="item-slot slot-plant"></div>
+                <div id="eq-crystal" class="item-slot slot-crystal"></div>
+                <div id="eq-rug" class="item-slot slot-rug"></div>
+                <div id="eq-scarf" class="item-slot slot-scarf"></div>
             </div>
 
-            <!-- NEW: INVENTORY DOCK -->
+            <!-- INVENTORY DOCK -->
             <div class="inventory-dock" id="inventory-dock">
                 <!-- Populated by JavaScript -->
             </div>
@@ -202,7 +202,7 @@
                 const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
                 const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
                 
-                // 1. Update the Equipped Item on the Blob
+                // 1. Update the Equipped Item in the Sanctuary Ring
                 const eqEl = document.getElementById(`eq-${item}`);
                 if (eqEl) {
                     eqEl.innerHTML = `<img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none; font-size:28px;">${itemIcons[item]}</span>`;
