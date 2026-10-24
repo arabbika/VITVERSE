@@ -1,7 +1,5 @@
 /* ============================================================
    VITVERSE COMPANION STYLESHEET
-   Includes: Base Blob, Sanctuary, Spatial Inventory, HUD, 
-             AI Chat, Game Plans, and Safe Space modes.
    ============================================================ */
 
 /* --- Base Companion --- */
@@ -9,7 +7,7 @@
   width: 55%;
   height: 55%;
   display: block;
-  z-index: 10; /* Companion sits in the middle layer */
+  z-index: 10; 
   position: relative;
   cursor: pointer;
   filter: drop-shadow(0 0 var(--glow) var(--accent-glow));
@@ -22,19 +20,19 @@
   100% { transform: translateY(-8px); }
 }
 
-/* --- Mood Colors --- */
+/* Mood Colors */
 .companion[data-mood="low"] { --body-inner: #a8b0c4; --body-outer: #78829e; }
 .companion[data-mood="settled"] { --body-inner: #8ec8e8; --body-outer: #5a8fc8; }
 .companion[data-mood="content"] { --body-inner: #7fd8ff; --body-outer: #3a8eef; }
 .companion[data-mood="radiant"] { --body-inner: #a8e8ff; --body-outer: #00e5ff; }
 
-/* --- Motion Layers --- */
+/* Motion Layers */
 .companion .bob-group { animation: companion-bob var(--bob-duration) ease-in-out infinite; transform-origin: 100px 170px; }
 .companion .breath-group { animation: companion-breathe var(--breath-duration) ease-in-out infinite; transform-origin: 100px 115px; }
 @keyframes companion-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes companion-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.01); } }
 
-/* --- Eyes & Mouth --- */
+/* Eyes & Mouth */
 .companion .eye { transform-box: fill-box; transform-origin: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .companion[data-mood="radiant"] .eye { transform: scaleY(1.1); }
 .companion[data-mood="settled"] .eye { transform: scaleY(0.7); }
@@ -57,7 +55,7 @@
 .companion.is-resting .mouth-settled { display: inline !important; }
 .companion.is-resting { animation-play-state: paused; filter: brightness(0.6) drop-shadow(0 0 2px var(--accent)); }
 
-/* --- The Sanctuary (The Room) --- */
+/* --- The Sanctuary --- */
 .sanctuary-stage {
   position: relative;
   width: 100%;
@@ -75,177 +73,109 @@
   background: linear-gradient(180deg, #1e2235 0%, #0d101a 100%);
 }
 
-/* DYNAMIC BACKGROUNDS based on Dominant Stat */
 .sanctuary-stage[data-dominant="rest"] { background: linear-gradient(180deg, #1e1a3e 0%, #0d0a1a 100%); }
 .sanctuary-stage[data-dominant="energy"] { background: linear-gradient(180deg, #3e2a1a 0%, #1a100d 100%); }
 .sanctuary-stage[data-dominant="calm"] { background: linear-gradient(180deg, #1a3e3e 0%, #0d1a1a 100%); }
 .sanctuary-stage[data-dominant="mood"] { background: linear-gradient(180deg, #3e1a3e 0%, #1a0d1a 100%); }
 
-/* Room Floor */
 .sanctuary-stage::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 30%;
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
   background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  z-index: 1;
-  pointer-events: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1); z-index: 1; pointer-events: none;
 }
 
-/* Background Glow behind blob */
-.sanctuary-stage::before {
-  content: '';
-  position: absolute;
-  width: 50%; height: 50%;
-  background: var(--accent);
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.15;
-  z-index: 0;
-  transition: opacity 1s ease;
-  pointer-events: none;
-}
-
-/* --- Dynamic Aura Ring --- */
+/* Aura Ring */
 .aura-ring {
-  position: absolute;
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  z-index: 1;
-  transition: all 1s ease;
-  opacity: 0.4;
-  pointer-events: none;
+  position: absolute; width: 80%; height: 80%; border-radius: 50%;
+  z-index: 1; transition: all 1s ease; opacity: 0.4; pointer-events: none;
 }
-
-.sanctuary-stage[data-dominant="rest"] .aura-ring {
-  box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3);
-  background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%);
-  animation: cosmic-pulse 8s infinite alternate;
-}
-.sanctuary-stage[data-dominant="energy"] .aura-ring {
-  box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3);
-  background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%);
-  animation: electric-shake 0.5s infinite;
-}
-.sanctuary-stage[data-dominant="calm"] .aura-ring {
-  box-shadow: 0 0 80px 10px rgba(0, 200, 255, 0.3);
-  background: radial-gradient(circle, rgba(0,200,255,0.1) 0%, transparent 70%);
-  animation: water-ripple 4s infinite alternate;
-}
-.sanctuary-stage[data-dominant="mood"] .aura-ring {
-  box-shadow: 0 0 80px 10px rgba(255, 100, 200, 0.3);
-  background: radial-gradient(circle, rgba(255,100,200,0.1) 0%, transparent 70%);
-  animation: bloom-pulse 4s infinite alternate;
-}
-
+.sanctuary-stage[data-dominant="rest"] .aura-ring { box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3); background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%); animation: cosmic-pulse 8s infinite alternate; }
+.sanctuary-stage[data-dominant="energy"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3); background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%); animation: electric-shake 0.5s infinite; }
+.sanctuary-stage[data-dominant="calm"] .aura-ring { box-shadow: 0 0 80px 10px rgba(0, 200, 255, 0.3); background: radial-gradient(circle, rgba(0,200,255,0.1) 0%, transparent 70%); animation: water-ripple 4s infinite alternate; }
+.sanctuary-stage[data-dominant="mood"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 100, 200, 0.3); background: radial-gradient(circle, rgba(255,100,200,0.1) 0%, transparent 70%); animation: bloom-pulse 4s infinite alternate; }
 @keyframes cosmic-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.6; } }
 @keyframes electric-shake { 0% { transform: translate(0,0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0,0); } }
 @keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
 @keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
 
-/* --- SPATIAL INVENTORY SLOTS (AI Assets) --- */
+/* --- SPATIAL INVENTORY (RING vs EQUIPPED) --- */
 .item-slot {
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth flying animation */
   cursor: pointer;
+  z-index: 15;
 }
 
 .item-slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none; 
+  width: 100%; height: 100%; object-fit: contain; pointer-events: none;
 }
 
-/* Locked State (Silhouette) */
+/* Locked State */
 .item-slot.locked {
-  filter: brightness(0) opacity(0.15);
+  filter: brightness(0) opacity(0.2);
   cursor: not-allowed;
-  transform: scale(0.9);
+  pointer-events: none;
 }
 
-/* Unlocked State (Full color) */
-.item-slot.unlocked {
-  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
-}
-
+/* Unlocked State (Ring Hover) */
 .item-slot.unlocked:hover {
-  transform: scale(1.1);
+  transform: scale(1.15) !important;
+  filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
 }
 
-/* Equipped State (Glowing) */
+/* --- THE FLOATING RING (Unequipped State) --- */
+.item-slot.in-ring {
+  width: 45px; height: 45px;
+  opacity: 0.8;
+}
+
+.slot-halo.in-ring { top: 12%; left: 15%; }
+.slot-crown.in-ring { top: 12%; right: 15%; }
+.slot-scarf.in-ring { top: 45%; left: 5%; }
+.slot-lamp.in-ring { top: 45%; right: 5%; }
+.slot-plant.in-ring { bottom: 15%; left: 10%; }
+.slot-rug.in-ring { bottom: 15%; right: 10%; }
+
+/* --- EQUIPPED POSITIONS (Flown to Blob) --- */
 .item-slot.equipped {
-  filter: drop-shadow(0 0 20px var(--accent-glow));
+  transform: translateX(-50%) !important;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+  z-index: 25;
 }
 
-/* 1. Floor Items */
-.slot-rug { 
-  z-index: 2; 
-  bottom: 5%; left: 50%; transform: translateX(-50%); 
-  width: 180px; height: 90px; 
-}
-.slot-rug.locked { transform: translateX(-50%) scale(0.9); }
-.slot-rug.unlocked:hover { transform: translateX(-50%) scale(1.05); }
+/* Halo */
+.slot-halo.equipped { top: 8%; left: 50%; width: 80px; height: 40px; z-index: 30; animation: float-halo 3s infinite; }
 
-/* 2. Background Decor */
-.slot-plant { 
-  z-index: 5; 
-  bottom: 15%; left: 5%; 
-  width: 80px; height: 80px; 
-}
-.slot-lamp { 
-  z-index: 5; 
-  top: 15%; right: 5%; 
-  width: 70px; height: 100px; 
-}
+/* Crown */
+.slot-crown.equipped { top: 12%; left: 50%; width: 70px; height: 70px; z-index: 30; }
 
-/* 4. On-Body Wearables (Above Companion) */
-.slot-scarf { 
-  z-index: 15; 
-  bottom: 25%; left: 50%; transform: translateX(-50%); 
-  width: 100px; height: 50px; 
-}
-.slot-scarf.locked { transform: translateX(-50%) scale(0.9); }
-.slot-scarf.unlocked:hover { transform: translateX(-50%) scale(1.05); }
+/* Scarf */
+.slot-scarf.equipped { top: 55%; left: 50%; width: 90px; height: 45px; z-index: 20; }
 
-/* 5. Head Wearables (Top Layer) */
-.slot-halo { 
-  z-index: 20; 
-  top: 12%; left: 50%; transform: translateX(-50%); 
-  width: 80px; height: 40px; 
-  animation: float-halo 3s ease-in-out infinite;
-}
-.slot-halo.locked { animation: none; }
+/* Decor */
+.slot-lamp.equipped { top: 15%; right: 5%; transform: none !important; width: 70px; height: 100px; z-index: 5; }
+.slot-plant.equipped { bottom: 15%; left: 5%; transform: none !important; width: 80px; height: 80px; z-index: 5; }
 
-.slot-crown { 
-  z-index: 20; 
-  top: 10%; left: 50%; transform: translateX(-50%); 
-  width: 70px; height: 70px; 
-}
-@keyframes float-halo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* Rug (Under Blob) */
+.slot-rug.equipped { bottom: 5%; left: 50%; width: 180px; height: 90px; z-index: 2; }
 
-/* --- HUD (Level & XP) --- */
+@keyframes float-halo { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -8px); } }
+
+/* --- UI & HUD --- */
 .hud-container {
   width: 100%; max-width: 340px; margin: 0 auto;
   background: var(--bg-surface); border: 1px solid var(--border-glass);
   border-radius: 20px; padding: 16px; backdrop-filter: blur(12px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 25; position: relative;
 }
-
 .hud-top { display: flex; justify-content: space-between; align-items: center; }
 .level-text { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
 .xp-text { font-family: var(--font-ui); font-size: 11px; color: var(--text-muted); font-weight: 600; }
-
 .xp-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.4); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
 .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #0088cc, var(--accent)); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; box-shadow: 0 0 10px var(--accent-glow); }
 
-/* --- Quest Bubble --- */
 .companion-memory {
   background: var(--bg-surface); border: 1px solid var(--border-glass);
   border-radius: 20px; border-bottom-right-radius: 4px;
@@ -258,24 +188,29 @@
 .companion-memory:hover { background: rgba(40, 45, 70, 0.8); transform: translateY(-2px); }
 .quest-action { display: block; font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
 
-/* --- Game Juice --- */
-.ambient-particle {
-  position: absolute; width: 4px; height: 4px; background: var(--accent);
-  border-radius: 50%; opacity: 0; pointer-events: none;
-  animation: float-up infinite linear; z-index: 1; filter: blur(1px);
-}
-@keyframes float-up {
-  0% { transform: translateY(0) scale(0.5); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
-}
+/* AI Chat & Modes */
+.ai-chat-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; margin: 16px auto; z-index: 25; position: relative; }
+.mode-toggles { display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; }
+.mode-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: var(--font-ui); }
+.mode-btn.active { background: var(--bg-surface); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.mode-btn:last-child.active { color: #ff8fb8; }
+.ai-chat-container { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 24px; padding: 6px 6px 6px 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: border-color 0.3s ease; }
+.ai-chat-container:focus-within { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+.ai-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: var(--font-ui); font-size: 14px; outline: none; }
+.ai-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.ai-mic-btn { background: rgba(255,255,255,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 16px; cursor: pointer; transition: all 0.2s ease; }
+.ai-mic-btn:hover { background: rgba(255,255,255,0.1); }
+.ai-mic-btn.listening { animation: pulse-mic 1s infinite; }
+@keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
 
-.level-up-overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(15, 17, 26, 0.9); backdrop-filter: blur(12px);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 1000; overflow: hidden;
-}
+.audio-toggle-btn { position: absolute; top: 16px; right: 16px; z-index: 25; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); color: var(--text-muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(4px); }
+.audio-toggle-btn.playing { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); animation: pulse-audio 2s infinite; }
+@keyframes pulse-audio { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+/* Game Juice & Overlays */
+.ambient-particle { position: absolute; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; animation: float-up infinite linear; z-index: 1; filter: blur(1px); }
+@keyframes float-up { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-150px) scale(1.5); opacity: 0; } }
+.level-up-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 17, 26, 0.9); backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; overflow: hidden; }
 .level-up-text { font-family: var(--font-ui); font-size: 14px; font-weight: 800; color: var(--accent); letter-spacing: 4px; text-transform: uppercase; animation: zoom-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .level-up-number { font-family: var(--font-display); font-size: 100px; font-weight: 900; color: #fff; text-shadow: 0 0 60px var(--accent); animation: zoom-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; line-height: 1; margin: 10px 0 30px 0; }
 .level-up-btn { background: var(--accent); border: none; color: #000; padding: 12px 40px; border-radius: 30px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
@@ -284,110 +219,22 @@
 .confetti { position: absolute; top: -10px; width: 8px; height: 8px; border-radius: 2px; animation: fall 3s linear forwards; }
 @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
-/* --- Safe Space: AI Chat & Modes --- */
-.ai-chat-wrapper {
-  display: flex; flex-direction: column; gap: 8px;
-  width: 100%; max-width: 340px; margin: 16px auto;
-  z-index: 25; position: relative;
-}
+/* Whisper Absorption */
+.absorb-particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ff8fb8; box-shadow: 0 0 10px #ff8fb8; animation: absorb 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; z-index: 5; pointer-events: none; }
+@keyframes absorb { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
 
-.mode-toggles {
-  display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px;
-}
-.mode-btn {
-  flex: 1; background: transparent; border: none; color: var(--text-muted);
-  padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;
-  transition: all 0.2s; font-family: var(--font-ui);
-}
-.mode-btn.active {
-  background: var(--bg-surface); color: var(--text-main);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-.mode-btn:last-child.active { color: #ff8fb8; }
-
-.ai-chat-container {
-  display: flex; align-items: center; gap: 8px;
-  width: 100%; background: var(--bg-surface); border: 1px solid var(--border-glass);
-  border-radius: 24px; padding: 6px 6px 6px 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.3s ease;
-}
-.ai-chat-container:focus-within {
-  border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow);
-}
-
-.ai-input {
-  flex: 1; background: transparent; border: none; color: var(--text-main);
-  font-family: var(--font-ui); font-size: 14px; outline: none;
-}
-.ai-input::placeholder { color: var(--text-muted); opacity: 0.7; }
-
-.ai-mic-btn {
-  background: rgba(255,255,255,0.05); border: none; width: 36px; height: 36px;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  color: var(--accent); font-size: 16px; cursor: pointer; transition: all 0.2s ease;
-}
-.ai-mic-btn:hover { background: rgba(255,255,255,0.1); }
-.ai-mic-btn.listening { animation: pulse-mic 1s infinite; }
-
-@keyframes pulse-mic {
-  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
-}
-
-/* Audio Toggle Button */
-.audio-toggle-btn {
-  position: absolute; top: 16px; right: 16px; z-index: 25;
-  background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass);
-  color: var(--text-muted); width: 40px; height: 40px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(4px);
-}
-.audio-toggle-btn.playing {
-  color: var(--accent); border-color: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
-  animation: pulse-audio 2s infinite;
-}
-@keyframes pulse-audio {
-  0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); }
-}
-
-/* --- Whisper Particle Absorption --- */
-.absorb-particle {
-  position: absolute; width: 6px; height: 6px; border-radius: 50%;
-  background: #ff8fb8; box-shadow: 0 0 10px #ff8fb8;
-  animation: absorb 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  z-index: 5; pointer-events: none;
-}
-@keyframes absorb {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-}
-
-/* --- Aura Game Plan UI --- */
-.companion-memory.is-expanded {
-  max-width: 100%; padding: 0; background: transparent; border: none; box-shadow: none; backdrop-filter: none; cursor: default;
-}
+/* Game Plan UI */
+.companion-memory.is-expanded { max-width: 100%; padding: 0; background: transparent; border: none; box-shadow: none; backdrop-filter: none; cursor: default; }
 .companion-memory.is-expanded:hover { transform: none; background: transparent; }
-
 .aura-plan { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; margin: 0 auto; animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes slide-up { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-
 .phase-card { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 16px; padding: 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); text-align: left; }
 .phase-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
 .phase-content { font-size: 14px; line-height: 1.5; color: var(--text-main); }
-
 .phase-objective { border-left: 4px solid #ffd700; } .phase-objective .phase-title { color: #ffd700; }
 .phase-1 { border-left: 4px solid #ff4444; } .phase-1 .phase-title { color: #ff4444; }
 .phase-2 { border-left: 4px solid #00e5ff; } .phase-2 .phase-title { color: #00e5ff; }
 .phase-3 { border-left: 4px solid #4ade80; } .phase-3 .phase-title { color: #4ade80; }
 .phase-somatic { border-left: 4px solid #a8e8ff; background: rgba(0, 229, 255, 0.05); } .phase-somatic .phase-title { color: #a8e8ff; }
-
-.dismiss-plan-btn {
-  background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px;
-  font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer;
-  margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow);
-}
+.dismiss-plan-btn { background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px; font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow); }
 .dismiss-plan-btn:active { transform: scale(0.96); box-shadow: none; }
