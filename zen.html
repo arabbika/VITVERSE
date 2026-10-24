@@ -8,11 +8,10 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            overflow: hidden; background: #e8e2d2; font-family: 'Inter', sans-serif; 
+            overflow: hidden; background: #111; font-family: 'Inter', sans-serif; 
             touch-action: none; user-select: none; 
         }
         
-        /* The Canvas */
         #zen-canvas { display: block; cursor: crosshair; }
 
         /* Top UI */
@@ -22,45 +21,38 @@
             pointer-events: none; z-index: 10;
         }
         .zen-exit {
-            background: rgba(0,0,0,0.1); border: none; color: #555;
+            background: rgba(0,0,0,0.5); border: none; color: #fff;
             width: 44px; height: 44px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; pointer-events: auto; transition: background 0.2s;
-            text-decoration: none;
+            text-decoration: none; backdrop-filter: blur(4px);
         }
-        .zen-exit:hover { background: rgba(0,0,0,0.2); }
+        .zen-exit:hover { background: rgba(0,0,0,0.8); }
         
-        .zen-stats {
-            background: rgba(255,255,255,0.4); backdrop-filter: blur(8px);
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
-            color: #444; display: flex; align-items: center; gap: 8px;
-        }
-
         /* Bottom Toolbar */
         .zen-toolbar {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px);
-            padding: 12px; border-radius: 32px;
-            display: flex; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            z-index: 10;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px);
+            padding: 10px; border-radius: 32px;
+            display: flex; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 10; overflow-x: auto; max-width: 95vw;
+            scrollbar-width: none;
         }
+        .zen-toolbar::-webkit-scrollbar { display: none; }
         
         .tool-btn {
-            width: 50px; height: 50px; border-radius: 50%;
+            min-width: 60px; height: 60px; border-radius: 50%;
             border: 2px solid transparent; background: transparent;
-            font-size: 24px; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold; color: #555;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            flex-shrink: 0;
         }
+        .tool-btn i { font-size: 20px; }
         .tool-btn.active {
-            background: rgba(255,255,255,0.9); border-color: #888; 
+            background: #fff; border-color: #888; 
             transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        #zen-toast {
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            background: #00e5ff; color: #000; font-weight: bold; font-size: 12px;
-            padding: 6px 16px; border-radius: 20px; opacity: 0; transition: opacity 0.3s;
-            pointer-events: none; z-index: 10; box-shadow: 0 4px 12px rgba(0, 229, 255, 0.4);
+            color: #000;
         }
     </style>
 </head>
@@ -69,23 +61,19 @@
 
     <div class="zen-header">
         <a href="index.html" class="zen-exit"><i class="fa-solid fa-arrow-left"></i></a>
-        <div class="zen-stats">
-            <i class="fa-solid fa-spa"></i>
-            <span id="zen-timer">0m</span>
-        </div>
     </div>
-    
-    <div id="zen-toast">+50 XP</div>
 
     <div class="zen-toolbar">
-        <button class="tool-btn active" data-tool="rake" title="Rake Sand">🪮</button>
-        <button class="tool-btn" data-tool="stone" title="Place Stone">🪨</button>
-        <button class="tool-btn" data-tool="bonsai" title="Bonsai Tree">🪴</button>
-        <button class="tool-btn" data-tool="blossom" title="Cherry Blossom">🌸</button>
-        <button class="tool-btn" id="zen-clear" title="Clear Garden" style="font-size:18px;">♻️</button>
+        <button class="tool-btn active" data-tool="rake"><i class="fa-solid fa-broom"></i>Rake</button>
+        <button class="tool-btn" data-tool="tree"><i class="fa-solid fa-tree"></i>Tree</button>
+        <button class="tool-btn" data-tool="rock"><i class="fa-solid fa-mountain"></i>Rock</button>
+        <button class="tool-btn" data-tool="bush"><i class="fa-solid fa-leaf"></i>Bush</button>
+        <button class="tool-btn" data-tool="lantern"><i class="fa-solid fa-torii-gate"></i>Lantern</button>
+        <button class="tool-btn" data-tool="pond"><i class="fa-solid fa-water"></i>Pond</button>
+        <button class="tool-btn" id="zen-clear"><i class="fa-solid fa-rotate-left"></i>Clear</button>
     </div>
 
-    <!-- SCRIPTS AT THE BOTTOM -->
+    <!-- Scripts loaded at the bottom -->
     <script src="companion.js"></script>
     <script src="juice.js"></script>
     <script src="zen.js"></script>
