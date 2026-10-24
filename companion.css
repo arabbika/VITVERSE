@@ -102,9 +102,11 @@
 .slot-crystal.in-ring { bottom: 20%; left: 15%; }
 .slot-plant.in-ring { bottom: 20%; right: 15%; }
 .slot-cat.in-ring { bottom: 5%; left: 50%; margin-left: -24px; }
+/* FIX: The missing rug position */
+.slot-rug.in-ring { bottom: 5%; left: 15%; } 
 
 /* THE EQUIPPED POSITIONS (Flown to Blob) */
-.item-slot.equipped { filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+.item-slot.equipped { filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
 
 /* Head & Neck */
 .slot-crown.equipped { top: 10%; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; z-index: 25; }
@@ -113,7 +115,7 @@
 /* Background Decor */
 .slot-rug.equipped { bottom: 2%; left: 50%; transform: translateX(-50%); width: 160px; height: 80px; z-index: 2; }
 .slot-gate.equipped { top: 5%; left: 50%; transform: translateX(-50%); width: 120px; height: 80px; z-index: 3; }
-.slot-lamp.equipped { top: 15%; right: 15%; transform: none; width: 50px; height: 70px; z-index: 4; } /* Scaled down */
+.slot-lamp.equipped { top: 15%; right: 15%; transform: none; width: 50px; height: 70px; z-index: 4; }
 .slot-plant.equipped { bottom: 15%; left: 15%; transform: none; width: 60px; height: 60px; z-index: 5; }
 
 /* Foreground Decor */
