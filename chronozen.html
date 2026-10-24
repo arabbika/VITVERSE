@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ChronoZen — Vitverse</title>
+    <title>ChronoZen — Quest Board</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
+    <!-- FullCalendar v6 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+    <!-- Engine -->
     <script src="companion.js"></script>
+    <script src="juice.js"></script>
     
     <script>
         if ('serviceWorker' in navigator) {
@@ -29,138 +34,205 @@
     </script>
 
     <style>
-        .wrapper { max-width: 900px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
-        .logo-link { display: inline-block; cursor: pointer; transition: transform 0.2s ease; }
-        .logo-link:active { transform: scale(0.95); }
-        .logo-image { width: 140px; height: auto; display: block; }
-        .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
-        .category-tabs::-webkit-scrollbar { display: none; }
-        .cat-tab { background: rgba(0,0,0,0.3); border: 1px solid transparent; padding: 8px 16px; border-radius: 20px; color: var(--text-muted); font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-        .cat-tab.active { background: var(--bg-surface); border-color: var(--accent); color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
-        .child-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
-        .child-buttons.active { display: flex; }
-        .container .neumorphic-button { cursor: grab; background: linear-gradient(135deg, rgba(30, 34, 53, 0.8) 0%, rgba(20, 24, 38, 0.8) 100%); }
-        .container .neumorphic-button:active { cursor: grabbing; }
-        .calendar-container { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 24px; padding: 16px; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-        #calendar { --fc-border-color: rgba(255,255,255,0.08); --fc-page-bg-color: transparent; --fc-neutral-bg-color: rgba(0,0,0,0.2); --fc-today-bg-color: rgba(0, 229, 255, 0.1); --fc-event-bg-color: var(--accent); --fc-event-border-color: transparent; --fc-event-text-color: #000; --fc-button-bg-color: rgba(255,255,255,0.1); --fc-button-border-color: transparent; --fc-button-hover-bg-color: rgba(255,255,255,0.2); --fc-button-active-bg-color: var(--accent); --fc-button-active-text-color: #000; color: var(--text-main); font-family: var(--font-ui); }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: var(--fc-border-color); }
-        .fc-col-header-cell-cushion, .fc-daygrid-day-number { color: var(--text-muted); text-decoration: none; font-weight: 600; }
-        .fc-toolbar-title { font-family: var(--font-display); font-size: 1.2rem !important; text-transform: uppercase; color: var(--accent); }
-        .event-delete-icon { position: absolute; top: 2px; right: 4px; color: #000; cursor: pointer; font-size: 16px; font-weight: bold; z-index: 2; user-select: none; opacity: 0.6; }
-        .event-delete-icon:hover { opacity: 1; }
-        .fc-event-dragging { opacity: 0.8; transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        body { background: #0f111a; overflow: hidden; }
+        
+        /* Top Bar */
+        .top-bar {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; background: linear-gradient(180deg, #0f111a 0%, transparent 100%);
+            z-index: 100;
+        }
+        .back-btn { color: var(--text-muted); font-size: 20px; text-decoration: none; transition: color 0.2s; }
+        .back-btn:hover { color: var(--accent); }
+        .title-text { font-family: 'Orbitron', sans-serif; font-size: 16px; color: var(--text-main); letter-spacing: 2px; }
+
+        /* Calendar Container */
+        .calendar-wrapper {
+            position: absolute; top: 60px; bottom: 100px; left: 0; right: 0;
+            padding: 0 16px; overflow-y: auto;
+        }
+
+        #calendar {
+            /* FullCalendar Overrides for Dark Mode HUD */
+            --fc-border-color: rgba(255, 255, 255, 0.05);
+            --fc-page-bg-color: transparent;
+            --fc-neutral-bg-color: rgba(255, 255, 255, 0.02);
+            --fc-today-bg-color: rgba(0, 229, 255, 0.05);
+            --fc-event-bg-color: var(--accent);
+            --fc-event-border-color: transparent;
+            --fc-event-text-color: #000;
+            --fc-button-bg-color: rgba(255, 255, 255, 0.05);
+            --fc-button-border-color: transparent;
+            --fc-button-hover-bg-color: rgba(255, 255, 255, 0.1);
+            --fc-button-active-bg-color: var(--accent);
+            --fc-button-active-text-color: #000;
+            font-family: 'Inter', sans-serif;
+        }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: rgba(255,255,255,0.05); }
+        .fc-col-header-cell-cushion { color: var(--text-muted); font-size: 12px; text-transform: uppercase; padding: 10px 0 !important; font-weight: 600; }
+        .fc-daygrid-day-number { color: var(--text-muted); font-size: 14px; padding: 8px !important; font-weight: 600; }
+        .fc-day-today .fc-daygrid-day-number { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        .fc-toolbar-title { font-family: 'Orbitron', sans-serif !important; font-size: 18px !important; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;}
+        .fc-header-toolbar { padding: 16px 0; }
+        .fc-event { border-radius: 6px; font-weight: bold; font-size: 11px; padding: 2px 4px; box-shadow: 0 0 10px var(--accent-glow); }
+
+        /* Quest Dock */
+        .quest-dock {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 90px;
+            background: rgba(15, 17, 26, 0.9); backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; gap: 12px; padding: 0 20px;
+            overflow-x: auto; z-index: 100; scrollbar-width: none;
+        }
+        .quest-dock::-webkit-scrollbar { display: none; }
+
+        .quest-item {
+            min-width: 70px; height: 70px; border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            color: var(--text-main); font-size: 10px; font-weight: bold; cursor: grab;
+            transition: transform 0.2s, background 0.2s;
+            user-select: none;
+        }
+        .quest-item:active { cursor: grabbing; transform: scale(0.95); }
+        .quest-item:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent); }
+        .quest-item i { font-size: 20px; color: var(--accent); }
+
+        /* Delete Popup */
+        .delete-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: #1a1e2e; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 20px;
+            padding: 24px; text-align: center; z-index: 1000; opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .delete-popup.active { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+        .delete-popup p { color: #fff; margin-bottom: 20px; font-size: 14px; }
+        .btn-danger { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid #ff4444; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-right: 10px;}
+        .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <header>
-            <div class="header-top">
-                <a href="index.html" class="logo-link" aria-label="Back to Vitverse home">
-                    <img src="logo.png" alt="VITVERSE" class="logo-image">
-                </a>
-            </div>
-            <div class="top-buttons">
-                <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
-                <button type="button" class="neumorphic-button active" onclick="navigateToPage('chronozen.html')"><i class="fa-solid fa-calendar"></i><span>Quests</span></button>
-                <button type="button" class="neumorphic-button" onclick="navigateToPage('dreamweaver.html')"><i class="fa-solid fa-lightbulb"></i><span>Camp</span></button>
-                <button type="button" class="neumorphic-button" onclick="navigateToPage('soulsync.html')"><i class="fa-solid fa-heart"></i><span>Spirit</span></button>
-            </div>
-        </header>
 
-        <div class="category-tabs">
-            <button class="cat-tab active" onclick="showChildButtons('wellbeing', this)">WellBeing</button>
-            <button class="cat-tab" onclick="showChildButtons('productivity', this)">Productivity</button>
-            <button class="cat-tab" onclick="showChildButtons('connections', this)">Connections</button>
-            <button class="cat-tab" onclick="showChildButtons('relaxation', this)">Relaxation</button>
-        </div>
+    <div class="top-bar">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="title-text">QUEST BOARD</div>
+        <div style="width: 20px;"></div> <!-- Spacer -->
+    </div>
 
-        <div class="container">
-            <div id="wellbeing" class="child-buttons active">
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dumbbell"></i><span>Skills</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-brain"></i><span>Mindfulness</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-book"></i><span>Reflection</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-smile"></i><span>Moods</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-running"></i><span>Exercise</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-utensils"></i><span>Nutrition</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-bed"></i><span>Sleep</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-dollar-sign"></i><span>Financial</span></button>
-            </div>
-            <div id="productivity" class="child-buttons">
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-list"></i><span>Tasks</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-briefcase"></i><span>Deep Work</span></button>
-            </div>
-            <div id="connections" class="child-buttons">
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-handshake"></i><span>Interaction</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-comments"></i><span>Communication</span></button>
-            </div>
-            <div id="relaxation" class="child-buttons">
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-gamepad"></i><span>Games</span></button>
-                <button type="button" class="neumorphic-button"><i class="fa-solid fa-music"></i><span>Music</span></button>
-            </div>
-        </div>
+    <div class="calendar-wrapper">
+        <div id="calendar"></div>
+    </div>
 
-        <div class="calendar-container">
-            <div id="calendar"></div>
-        </div>
+    <!-- Draggable Quest Dock -->
+    <div class="quest-dock" id="quest-dock">
+        <div class="quest-item" data-title="Deep Work"><i class="fa-solid fa-briefcase"></i>Focus</div>
+        <div class="quest-item" data-title="Wellness"><i class="fa-solid fa-heart-pulse"></i>Wellness</div>
+        <div class="quest-item" data-title="Study"><i class="fa-solid fa-book"></i>Study</div>
+        <div class="quest-item" data-title="Errands"><i class="fa-solid fa-basket-shopping"></i>Errands</div>
+        <div class="quest-item" data-title="Creative"><i class="fa-solid fa-palette"></i>Creative</div>
+        <div class="quest-item" data-title="Rest"><i class="fa-solid fa-moon"></i>Rest</div>
+    </div>
+
+    <!-- Delete Popup -->
+    <div class="delete-popup" id="delete-popup">
+        <p>Abandon this quest?</p>
+        <button class="btn-cancel" onclick="closeDeletePopup()">Cancel</button>
+        <button class="btn-danger" onclick="confirmDelete()">Abandon</button>
     </div>
 
     <script>
-        function navigateToPage(page) { window.location.href = page; }
-        function showChildButtons(category, btnElement) {
-            document.querySelectorAll('.child-buttons').forEach(div => div.classList.remove('active'));
-            document.querySelectorAll('.cat-tab').forEach(btn => btn.classList.remove('active'));
-            const target = document.getElementById(category);
-            if (target) target.classList.add('active');
-            if (btnElement) btnElement.classList.add('active');
+        let calendar;
+        let eventToDelete = null;
+        const STORAGE_KEY = 'chronozen.events.v2';
+
+        function loadEvents() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch { return []; }
         }
 
-        const STORAGE_KEY = 'chronozen.events.v1';
-        function loadEvents() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; } }
-        function saveEvents(calendar) { try { const events = calendar.getEvents().map(e => ({ id: e.id, title: e.title, start: e.startStr, end: e.endStr, allDay: e.allDay })); localStorage.setItem(STORAGE_KEY, JSON.stringify(events)); } catch (err) {} }
+        function saveEvents() {
+            if (!calendar) return;
+            const events = calendar.getEvents().map(e => ({
+                id: e.id, title: e.title, start: e.startStr, end: e.endStr, allDay: e.allDay,
+            }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const calendarEl = document.getElementById('calendar');
-            if (!calendarEl || typeof FullCalendar === 'undefined') return;
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
+            calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
                 events: loadEvents(),
-                headerToolbar: { left: 'title', right: 'today prev,next' },
+                headerToolbar: {
+                    left: 'title',
+                    right: 'prev,next'
+                },
                 eventReceive: function (info) {
-                    info.event.setProp('title', info.draggedEl.getAttribute('data-event-title') || 'Quest');
-                    info.event.setProp('backgroundColor', 'var(--accent)');
-                    info.event.setProp('textColor', '#000');
-                    saveEvents(calendar);
+                    info.event.setProp('title', info.draggedEl.getAttribute('data-title') || 'Quest');
+                    saveEvents();
+
+                    // RPG Feedback
                     if (window.Companion) {
-                        Companion.emit({ id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))), type: 'TASK_COMPLETE' });
-                        if (window.Juice) Juice.checkLevelUp(Companion.view());
+                        Companion.emit({
+                            id: crypto.randomUUID(),
+                            type: 'TASK_COMPLETE',
+                        });
+                    }
+                    
+                    // Juice
+                    if (window.Juice) {
+                        Juice.playPetSound();
+                        Juice.vibrate([50, 50, 50]);
+                        Juice.checkLevelUp(Companion.view());
                     }
                 },
-                eventDrop: function () { saveEvents(calendar); },
-                eventRemove: function () { saveEvents(calendar); },
-                eventDidMount: function (info) {
-                    const del = document.createElement('span');
-                    del.textContent = '\u00D7';
-                    del.className = 'event-delete-icon';
-                    del.addEventListener('click', function (e) { e.stopPropagation(); if (confirm('Delete this quest?')) info.event.remove(); });
-                    const pos = window.getComputedStyle(info.el).position;
-                    if (pos === 'static') info.el.style.position = 'relative';
-                    info.el.appendChild(del);
-                },
+                eventDrop: function () { saveEvents(); },
+                eventRemove: function () { saveEvents(); },
+                
+                // Click to Delete logic
+                eventClick: function (info) {
+                    info.jsEvent.preventDefault();
+                    eventToDelete = info.event;
+                    document.getElementById('delete-popup').classList.add('active');
+                }
             });
+
             calendar.render();
 
-            document.querySelectorAll('.container .neumorphic-button').forEach(function (elem) {
-                const span = elem.querySelector('span');
-                const title = span ? span.textContent.trim() : 'Quest';
-                elem.setAttribute('data-event-title', title);
-                new FullCalendar.Draggable(elem, { itemSelector: '.neumorphic-button', eventData: function () { return { title: title }; } });
+            // Make the dock items draggable
+            document.querySelectorAll('.quest-item').forEach(function (elem) {
+                new FullCalendar.Draggable(elem, {
+                    itemSelector: '.quest-item',
+                    eventData: function () {
+                        return { 
+                            title: elem.getAttribute('data-title'),
+                            backgroundColor: 'var(--accent)',
+                            textColor: '#000'
+                        };
+                    },
+                });
             });
         });
+
+        function closeDeletePopup() {
+            document.getElementById('delete-popup').classList.remove('active');
+            eventToDelete = null;
+        }
+
+        function confirmDelete() {
+            if (eventToDelete) {
+                eventToDelete.remove(); // Triggers eventRemove -> saveEvents
+                if (window.Juice) Juice.vibrate(100);
+            }
+            closeDeletePopup();
+        }
     </script>
 </body>
 </html>
