@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vitverse — Your Inner Sanctuary</title>
     
+    <!-- Icons & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="companion.css">
+    
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
+    <!-- Service Worker with Auto-Reload -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -25,13 +31,16 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
+
     <style>
+        /* Zen Rock Entry Point */
         .zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
         @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     </style>
 </head>
 <body>
     <div class="wrapper">
+        <!-- Top Navigation -->
         <header>
             <div class="top-buttons">
                 <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
@@ -43,6 +52,7 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
+            <!-- Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory" onclick="gotoQuest()">
                 <span>Welcome back. What's on your mind?</span>
             </div>
@@ -50,12 +60,15 @@
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
+                <!-- Entry to Zen Sandbox -->
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
 
+                <!-- Audio Toggle Button -->
                 <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)">
                     <i class="fa-solid fa-volume-xmark"></i>
                 </button>
 
+                <!-- Dynamic Aura Ring -->
                 <div class="aura-ring"></div>
                 
                 <!-- The Companion -->
@@ -137,6 +150,43 @@
         </main>
     </div>
 
+    <!-- ONBOARDING TUTORIAL OVERLAY -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-card">
+            <div class="tutorial-orb"></div>
+            
+            <!-- Step 1 -->
+            <div class="tutorial-step active" data-step="1">
+                <h2>Welcome to your Sanctuary</h2>
+                <p>This is your Companion. It mirrors your real-life habits. When you take care of yourself, it glows. When you neglect yourself, it fades.</p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="tutorial-step" data-step="2">
+                <h2>Conquer Your Quests</h2>
+                <p>Use <strong>ChronoZen</strong> to drag and drop your daily tasks onto the calendar. Every task you complete gives your Companion Energy.</p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="tutorial-step" data-step="3">
+                <h2>Restore Your Peace</h2>
+                <p>When you are overwhelmed, enter <strong>BreatheWell</strong> or <strong>SoulSync</strong>. Ground yourself, and watch your Companion's anxiety fade.</p>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="tutorial-step" data-step="4">
+                <h2>Find Your Zen</h2>
+                <p>Finally, tap the <strong>Glowing Rock</strong> to enter the Zen Sandbox. Rake the sand, plant bonsai, and release your stress. Your sanctuary is always waiting.</p>
+            </div>
+
+            <div class="tutorial-controls">
+                <button class="skip-btn" onclick="closeTutorial()">Skip Guide</button>
+                <button class="next-btn" id="tutorial-next" onclick="nextTutorialStep()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -177,11 +227,13 @@
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
+            // 1. Update HUD
             document.getElementById('hud-level').textContent = view.level;
             const progress = (view.xp / view.xpNeeded) * 100;
             document.getElementById('xp-bar-fill').style.width = `${progress}%`;
             document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
 
+            // 2. Update Quest Bubble
             const bubble = document.getElementById('companion-memory');
             if (!bubble.classList.contains('is-expanded') && !bubble.innerHTML.includes('fa-spinner')) {
                 if (view.quest) {
@@ -190,9 +242,11 @@
                 }
             }
 
+            // 3. Update Aura Environment
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
 
+            // 4. Update Spatial Inventory (Equipped Items & Dock)
             const allItems = ['crown', 'scarf', 'plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
             const dock = document.getElementById('inventory-dock');
             dock.innerHTML = '';
@@ -202,7 +256,7 @@
                 const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
                 const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
                 
-                // 1. Update the Equipped Item in the Sanctuary Ring
+                // Update the Equipped Item in the Sanctuary
                 const eqEl = document.getElementById(`eq-${item}`);
                 if (eqEl) {
                     eqEl.innerHTML = `<img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none; font-size:28px;">${itemIcons[item]}</span>`;
@@ -213,7 +267,7 @@
                     }
                 }
 
-                // 2. Build the Inventory Dock Item
+                // Build the Inventory Dock Item
                 const dockItem = document.createElement('div');
                 dockItem.className = `dock-item ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'active' : ''}`;
                 dockItem.innerHTML = `
@@ -229,12 +283,46 @@
             });
         }
 
+        // --- TUTORIAL LOGIC ---
+        let currentTutorialStep = 1;
+        const totalTutorialSteps = 4;
+
+        function checkTutorial() {
+            const hasSeen = localStorage.getItem('vitverse_tutorial_seen');
+            if (!hasSeen) {
+                document.getElementById('tutorial-overlay').classList.add('active');
+            }
+        }
+
+        function nextTutorialStep() {
+            if (currentTutorialStep < totalTutorialSteps) {
+                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.remove('active');
+                currentTutorialStep++;
+                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.add('active');
+                
+                if (currentTutorialStep === totalTutorialSteps) {
+                    document.getElementById('tutorial-next').textContent = 'Enter Sanctuary';
+                }
+            } else {
+                closeTutorial();
+            }
+        }
+
+        function closeTutorial() {
+            document.getElementById('tutorial-overlay').classList.remove('active');
+            localStorage.setItem('vitverse_tutorial_seen', 'true');
+        }
+
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             AILogger.setMode('aura');
             CompanionUI.mount(document.getElementById('companion'));
             updateDashboard(Companion.view());
             window.addEventListener('companion:update', (e) => updateDashboard(e.detail));
             if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
+            
+            // Trigger Tutorial check
+            checkTutorial();
         });
     </script>
 </body>
