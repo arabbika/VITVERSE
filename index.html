@@ -34,8 +34,15 @@
 
     <style>
         /* Zen Rock Entry Point */
-        .zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
-        @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
+        .zen-rock { 
+            position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; 
+            cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); 
+            animation: float-rock 4s infinite; text-decoration: none; 
+        }
+        @keyframes float-rock { 
+            0%, 100% { transform: translateY(0) rotate(-5deg); } 
+            50% { transform: translateY(-10px) rotate(5deg); } 
+        }
     </style>
 </head>
 <body>
@@ -150,7 +157,7 @@
         </main>
     </div>
 
-    <!-- ONBOARDING TUTORIAL OVERLAY -->
+    <!-- ONBOARDING TUTORIAL OVERLAY (5 STEPS) -->
     <div id="tutorial-overlay" class="tutorial-overlay">
         <div class="tutorial-card">
             <div class="tutorial-orb"></div>
@@ -175,6 +182,12 @@
             
             <!-- Step 4 -->
             <div class="tutorial-step" data-step="4">
+                <h2>Your AI Confidant</h2>
+                <p>Need to vent? Switch to <strong>Confidant</strong> mode and whisper your thoughts. Need a plan? Switch to <strong>Tactician</strong> mode and let the AI break down your chaos into a step-by-step game plan.</p>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="tutorial-step" data-step="5">
                 <h2>Find Your Zen</h2>
                 <p>Finally, tap the <strong>Glowing Rock</strong> to enter the Zen Sandbox. Rake the sand, plant bonsai, and release your stress. Your sanctuary is always waiting.</p>
             </div>
@@ -285,7 +298,7 @@
 
         // --- TUTORIAL LOGIC ---
         let currentTutorialStep = 1;
-        const totalTutorialSteps = 4;
+        const totalTutorialSteps = 5;
 
         function checkTutorial() {
             const hasSeen = localStorage.getItem('vitverse_tutorial_seen');
