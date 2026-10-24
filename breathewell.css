@@ -1,351 +1,137 @@
-/* ============================================================
-   BreatheWell — full corrected stylesheet
-   ------------------------------------------------------------
-   Fixes vs. original:
-   - .b478 replaces the invalid `body.478` selector
-   - Per-protocol timings (4-7-8 = 19s; Box / Alternate = 16s)
-   - `content` keyframes now match real breathing ratios
-   - body margin reset, 100dvh, no horizontal overflow
-   - removed z-index:-1 on .container (was hiding it behind <body>)
-   - .circle2 given a subtle inner highlight (was a dead element)
-   - :focus-visible outlines for keyboard users
-   - prefers-reduced-motion support
-
-   KNOWN LIMITATION:
-   The "breathe in / hold / breathe out" label is driven by animating
-   the CSS `content` property, which only animates in Chromium.
-   Firefox and Safari will show a static label. The cross-browser
-   fix (stacked spans + opacity) is at the bottom of this file,
-   commented out — see the note there for the required HTML change.
-   ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@700;900&display=swap');
 
 :root {
-  --bg: #1a1a1a;
-  --glow-soft:   rgba(0, 191, 255, 0.5);
-  --glow-strong: rgba(0, 191, 255, 0.7);
+  --bg-base: #0f111a;
+  --bg-surface: rgba(30, 34, 53, 0.6);
+  --text-main: #f0f4f8;
+  --text-muted: #8b9bb4;
+  --accent: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.4);
+  --border-glass: rgba(255, 255, 255, 0.08);
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
   min-height: 100dvh;
-  background-color: var(--bg);
-  color: #fff;
-  font-family: "Orbitron", sans-serif;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- controls ---------- */
-
-.menu {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 0 12px;
-}
-
-.start-container { margin-bottom: 20px; }
-
-.neumorphic-btn {
-  background: #2c2c2c;
-  border: none;
-  border-radius: 20px;
-  box-shadow: 5px 5px 10px #1a1a1a, -5px -5px 10px #444;
-  color: #fff;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease;
-}
-
-.neumorphic-btn:active {
-  box-shadow: inset 5px 5px 10px #1a1a1a, inset -5px -5px 10px #444;
-}
-
-.neumorphic-btn:focus-visible {
-  outline: 2px solid #00bfff;
-  outline-offset: 3px;
-}
-
-/* ---------- breathing circle ---------- */
-
-.container {
-  width: 300px;
-  height: 300px;
-  max-width: 80vw;
-  max-height: 80vw;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  position: relative;
-  /* Default = Box. Per-protocol overrides below. */
-  animation:
-    pulse-box 16s linear infinite,
-    icyGlow 5s ease-in-out infinite;
-  box-shadow: 0 0 30px 10px var(--glow-soft),
-              0 0 60px 20px rgba(0, 191, 255, 0.3);
-  display: none;
-}
-
-/* text label */
-.container::after {
-  content: 'breathe in';
+/* Screens */
+.screen {
   position: absolute;
-  top: calc(50% - 14px);
-  left: 0;
-  width: 100%;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
-  text-align: center;
-  text-transform: lowercase;
-  animation: text-box 16s linear infinite;
+  top: 0; left: 0; width: 100vw; height: 100dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+}
+.screen.active { opacity: 1; pointer-events: auto; }
+
+/* --- SCREEN 1: SELECTION --- */
+.back-btn {
+  position: absolute; top: 24px; left: 24px;
+  color: var(--text-muted); font-size: 20px; text-decoration: none;
+  transition: color 0.2s;
+}
+.back-btn:hover { color: var(--text-main); }
+
+.selection-content {
+  width: 100%; max-width: 400px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center;
 }
 
-/* rotating dot indicator */
-.container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: calc(50% - 8px);
-  width: 16px;
-  height: 50%;
-  z-index: 2;
-  background-image: radial-gradient(
-    circle at top center,
-    #6080c8 0%,
-    #6080c8 8px,
-    transparent 8px
-  );
-  animation: rotate-box 16s linear infinite;
-  transform-origin: center bottom;
+.title { font-family: 'Orbitron', sans-serif; font-size: 32px; color: var(--accent); margin-bottom: 8px; }
+.subtitle { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+.protocol-grid { display: flex; gap: 12px; width: 100%; }
+.protocol-btn {
+  flex: 1; background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.2s ease;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.protocol-btn.active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); background: rgba(0, 229, 255, 0.1); }
+.p-name { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: bold; color: #fff; }
+.p-desc { font-size: 12px; color: var(--text-muted); }
+
+.duration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.duration-btn {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s ease;
+  color: var(--text-main); font-size: 14px; font-weight: 600;
+}
+.duration-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0, 229, 255, 0.1); }
+
+.start-btn {
+  margin-top: 40px; width: 100%; padding: 16px; border-radius: 16px;
+  background: var(--accent); color: #000; font-weight: 800; font-size: 16px;
+  border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.start-btn:active { transform: scale(0.96); box-shadow: none; }
+
+/* --- SCREEN 2: ZEN MODE --- */
+#screen-session { background: radial-gradient(circle at center, #1a1e2e 0%, #0a0c13 100%); }
+.zen-header {
+  position: absolute; top: 24px; width: 100%; max-width: 400px;
+  display: flex; justify-content: space-between; align-items: center; padding: 0 24px;
+  z-index: 10;
+}
+.timer-display { font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--text-muted); }
+.exit-zen-btn { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+
+.breathing-stage {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.circle {
-  position: absolute;
-  top: 5%;
-  left: 5%;
-  width: 90%;
-  height: 90%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    #00cfff 20%,
-    #00aaff 40%,
-    #0080ff 60%,
-    transparent 70%
-  );
-  animation: icyGlow 5s ease-in-out infinite;
+/* The Pulsing Orb */
+.breathing-orb {
+  position: absolute; width: 150px; height: 150px; border-radius: 50%;
+  background: radial-gradient(circle, #a8e8ff 0%, #00e5ff 50%, transparent 100%);
+  filter: blur(10px); box-shadow: 0 0 60px var(--accent-glow);
+  transform: scale(1);
+  transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1); /* Default inhale transition */
 }
 
-.circle2 {
-  position: absolute;
-  top: 25%;
-  left: 25%;
-  width: 50%;
-  height: 50%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.15) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
+/* The Text */
+.breathing-text {
+  position: absolute; z-index: 10; font-family: 'Orbitron', sans-serif;
+  font-size: 24px; font-weight: 700; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  transition: opacity 0.5s ease;
 }
 
-/* ---------- protocol: 4-7-8 (inhale 4s / hold 7s / exhale 8s = 19s) ---------- */
-
-body.b478 .container {
-  animation:
-    pulse-b478 19s linear infinite,
-    icyGlow 5s ease-in-out infinite;
+/* Floating XP Ticker */
+#xp-ticker-area {
+  position: absolute; top: 30%; width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none;
 }
-body.b478 .container::after  { animation: text-b478   19s linear infinite; }
-body.b478 .container::before { animation: rotate-b478 19s linear infinite; }
-
-@keyframes pulse-b478 {
-  0%   { transform: scale(0.6); }
-  21%  { transform: scale(1); }
-  58%  { transform: scale(1); }
-  100% { transform: scale(0.6); }
+.floating-xp {
+  font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: bold; color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow); animation: float-up-fade 2s forwards;
+}
+@keyframes float-up-fade {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
 }
 
-@keyframes text-b478 {
-  0%    { content: 'breathe in'; }
-  20.9% { content: 'breathe in'; }
-  21%   { content: 'hold'; }
-  57.9% { content: 'hold'; }
-  58%   { content: 'breathe out'; }
-  100%  { content: 'breathe out'; }
+/* --- SCREEN 3: SUMMARY --- */
+.summary-card {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 24px; padding: 32px; width: 90%; max-width: 340px;
+  text-align: center; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-
-@keyframes rotate-b478 {
-  0%   { transform: rotate(0deg); }
-  21%  { transform: rotate(90deg); }
-  58%  { transform: rotate(90deg); }
-  100% { transform: rotate(360deg); }
+.summary-card h2 { font-family: 'Orbitron', sans-serif; color: var(--accent); margin-bottom: 20px; font-size: 20px; }
+.summary-icon {
+  width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 229, 255, 0.1);
+  border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--accent); margin: 0 auto 24px auto; box-shadow: 0 0 20px var(--accent-glow);
 }
-
-/* ---------- protocol: Box (4s inhale / 4s hold / 4s exhale / 4s hold = 16s) ---------- */
-
-body.box .container {
-  animation:
-    pulse-box 16s linear infinite,
-    icyGlow 5s ease-in-out infinite;
-}
-body.box .container::after  { animation: text-box   16s linear infinite; }
-body.box .container::before { animation: rotate-box 16s linear infinite; }
-
-@keyframes pulse-box {
-  0%   { transform: scale(0.6); }
-  25%  { transform: scale(1); }
-  50%  { transform: scale(1); }
-  75%  { transform: scale(0.6); }
-  100% { transform: scale(0.6); }
-}
-
-@keyframes text-box {
-  0%    { content: 'breathe in'; }
-  24.9% { content: 'breathe in'; }
-  25%   { content: 'hold'; }
-  49.9% { content: 'hold'; }
-  50%   { content: 'breathe out'; }
-  74.9% { content: 'breathe out'; }
-  75%   { content: 'hold'; }
-  100%  { content: 'hold'; }
-}
-
-@keyframes rotate-box {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(90deg); }
-  50%  { transform: rotate(180deg); }
-  75%  { transform: rotate(270deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ---------- protocol: Alternate Nostril (4 x 4s = 16s) ---------- */
-
-body.alternateNostril .container {
-  animation:
-    pulse-alternate 16s linear infinite,
-    icyGlow 5s ease-in-out infinite;
-}
-body.alternateNostril .container::after  { animation: text-alternateNostril   16s linear infinite; }
-body.alternateNostril .container::before { animation: rotate-alternateNostril 16s linear infinite; }
-
-@keyframes pulse-alternate {
-  0%   { transform: scale(0.6); }
-  25%  { transform: scale(1); }
-  50%  { transform: scale(1); }
-  75%  { transform: scale(0.6); }
-  100% { transform: scale(0.6); }
-}
-
-@keyframes text-alternateNostril {
-  0%    { content: 'inhale left'; }
-  24.9% { content: 'inhale left'; }
-  25%   { content: 'exhale right'; }
-  49.9% { content: 'exhale right'; }
-  50%   { content: 'inhale right'; }
-  74.9% { content: 'inhale right'; }
-  75%   { content: 'exhale left'; }
-  100%  { content: 'exhale left'; }
-}
-
-@keyframes rotate-alternateNostril {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(90deg); }
-  50%  { transform: rotate(180deg); }
-  75%  { transform: rotate(270deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ---------- shared glow ---------- */
-
-@keyframes icyGlow {
-  0%, 100% {
-    box-shadow: 0 0 30px 10px var(--glow-soft),
-                0 0 60px 20px rgba(0, 191, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 60px 20px var(--glow-strong),
-                0 0 90px 30px rgba(0, 191, 255, 0.5);
-  }
-}
-
-/* ---------- accessibility ---------- */
-
-@media (prefers-reduced-motion: reduce) {
-  .container,
-  .container::before,
-  .container::after,
-  .circle {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-  .container::after { content: 'breathe'; }
-}
-
-/* ============================================================
-   OPTIONAL — cross-browser text animation
-   ------------------------------------------------------------
-   The `content` keyframes above only animate in Chromium. To make
-   the "breathe in / hold / breathe out" label work in Firefox and
-   Safari, replace the `.container::after { content: ... }` rule
-   with three stacked spans inside .container:
-
-     <div class="container">
-       <span class="phase phase-in">breathe in</span>
-       <span class="phase phase-hold">hold</span>
-       <span class="phase phase-out">breathe out</span>
-       <div class="circle"></div>
-       <div class="circle2"></div>
-     </div>
-
-   Then use this CSS instead of the content keyframes:
-
-   .phase {
-     position: absolute;
-     top: calc(50% - 14px);
-     left: 0;
-     width: 100%;
-     text-align: center;
-     font-size: 24px;
-     color: rgba(255, 255, 255, 0.85);
-     opacity: 0;
-   }
-
-   body.b478 .phase-in   { animation: phase-in-b478   19s linear infinite; }
-   body.b478 .phase-hold { animation: phase-hold-b478 19s linear infinite; }
-   body.b478 .phase-out  { animation: phase-out-b478  19s linear infinite; }
-
-   @keyframes phase-in-b478 {
-     0%, 20.9% { opacity: 1; }
-     21%, 100% { opacity: 0; }
-   }
-   @keyframes phase-hold-b478 {
-     0%, 20.9% { opacity: 0; }
-     21%, 57.9% { opacity: 1; }
-     58%, 100%  { opacity: 0; }
-   }
-   @keyframes phase-out-b478 {
-     0%, 57.9%  { opacity: 0; }
-     58%, 100%  { opacity: 1; }
-   }
-
-   Repeat the pattern for .box and .alternateNostril using the
-   percentages from text-box / text-alternateNostril above.
-
-   This is the correct long-term fix; the content-animation version
-   is a Chromium-only shortcut that should not ship.
-   ============================================================ */
+.summary-stats { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.stat-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+.stat-row strong { color: var(--text-main); font-family: 'Orbitron', sans-serif; }
+.stat-row.highlight strong { color: var(--accent); font-size: 16px; }
