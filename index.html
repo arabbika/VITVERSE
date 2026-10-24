@@ -26,7 +26,7 @@
         }
     </script>
     <style>
-        .zen-rock { position: absolute; bottom: 10%; right: 10%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
+        .zen-rock { position: absolute; bottom: 5%; right: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
         @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     </style>
 </head>
@@ -54,18 +54,16 @@
                 <!-- Entry to Zen Sandbox -->
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
 
-                <!-- Audio Toggle Button -->
-                <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)" aria-label="Toggle Ambient Sound">
+                <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)">
                     <i class="fa-solid fa-volume-xmark"></i>
                 </button>
 
-                <!-- Dynamic Aura Ring -->
                 <div class="aura-ring"></div>
                 
-                <!-- SPATIAL INVENTORY SLOTS (Background) -->
-                <div id="slot-rug" class="item-slot slot-rug locked" onclick="handleSlotClick('rug')"></div>
-                <div id="slot-plant" class="item-slot slot-plant locked" onclick="handleSlotClick('plant')"></div>
-                <div id="slot-lamp" class="item-slot slot-lamp locked" onclick="handleSlotClick('lamp')"></div>
+                <!-- SPATIAL INVENTORY SLOTS -->
+                <div id="slot-rug" class="item-slot slot-rug in-ring locked" onclick="handleSlotClick('rug')"></div>
+                <div id="slot-plant" class="item-slot slot-plant in-ring locked" onclick="handleSlotClick('plant')"></div>
+                <div id="slot-lamp" class="item-slot slot-lamp in-ring locked" onclick="handleSlotClick('lamp')"></div>
                 
                 <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -97,10 +95,10 @@
                     </g>
                 </svg>
 
-                <!-- SPATIAL INVENTORY SLOTS (Foreground/Wearables) -->
-                <div id="slot-scarf" class="item-slot slot-scarf locked" onclick="handleSlotClick('scarf')"></div>
-                <div id="slot-halo" class="item-slot slot-halo locked" onclick="handleSlotClick('halo')"></div>
-                <div id="slot-crown" class="item-slot slot-crown locked" onclick="handleSlotClick('crown')"></div>
+                <!-- Head / Neck Wearables -->
+                <div id="slot-scarf" class="item-slot slot-scarf in-ring locked" onclick="handleSlotClick('scarf')"></div>
+                <div id="slot-halo" class="item-slot slot-halo in-ring locked" onclick="handleSlotClick('halo')"></div>
+                <div id="slot-crown" class="item-slot slot-crown in-ring locked" onclick="handleSlotClick('crown')"></div>
             </div>
 
             <!-- AI Chat Bar -->
@@ -135,7 +133,6 @@
         </main>
     </div>
 
-    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -174,6 +171,12 @@
             }
         }
 
+        // Fallback Emojis in case images haven't been generated yet
+        const itemIcons = { 
+            halo: '😇', crown: '👑', scarf: '🧣', 
+            plant: '🪴', lamp: '💡', rug: '🧶' 
+        };
+
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
@@ -205,11 +208,17 @@
                 const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
                 const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
 
-                // Inject the image (Requires assets to be uploaded)
-                el.innerHTML = `<img src="assets/${item}.png" alt="${item}">`;
+                // Render image. If it fails to load, show the emoji fallback.
+                el.innerHTML = `
+                    <img src="assets/${item}.png" alt="${item}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <span style="display:none; font-size:28px;">${itemIcons[item]}</span>
+                `;
                 
-                // Set Classes (locked, unlocked, equipped)
-                el.className = `item-slot slot-${item} ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'equipped' : ''}`;
+                // Apply classes: locked, unlocked, equipped, or in-ring
+                let classes = `item-slot slot-${item} `;
+                classes += isUnlocked ? 'unlocked ' : 'locked ';
+                classes += isEquipped ? 'equipped' : 'in-ring';
+                el.className = classes;
             });
         }
 
