@@ -1,31 +1,28 @@
 /**
- * Vitverse — Zen Sandbox Engine (v2.0)
- * Fixed: High-DPI scaling, mobile touch preventDefault, tool locking bug.
+ * Vitverse — Zen Sandbox Engine (v3.0)
+ * Fixed: DOM loading order, canvas initialization.
  */
 const ZenSandbox = (() => {
-  const canvas = document.getElementById('zen-canvas');
-  const ctx = canvas.getContext('2d');
-  const STORAGE_KEY = 'vitverse.zen.garden.v2';
+  let canvas, ctx;
+  const STORAGE_KEY = 'vitverse.zen.garden.v3';
   
   let isDrawing = false;
   let lastX = 0, lastY = 0;
   let currentTool = 'rake'; 
   let zenMinutes = 0;
   let sessionTimer = null;
-  let dpr = window.devicePixelRatio || 1;
+  let dpr = 1;
 
   // --- Audio Setup ---
   let audioCtx = null;
-  const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // C Major Pentatonic
+  const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; 
   let lastNoteTime = 0;
 
   function initAudio() {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
-    } catch (e) {
-      console.warn("Audio not supported", e);
-    }
+    } catch (e) {}
   }
 
   function playNote(y, speed) {
@@ -40,15 +37,11 @@ const ZenSandbox = (() => {
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      
       osc.type = 'sine';
       osc.frequency.value = freq;
-
       const volume = Math.min(0.1, Math.max(0.01, speed / 1000));
-      
       gain.gain.setValueAtTime(volume, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
@@ -56,14 +49,10 @@ const ZenSandbox = (() => {
     } catch(e) {}
   }
 
-  // --- Canvas Setup (High DPI Support) ---
+  // --- Canvas Setup ---
   function resizeCanvas() {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    if (canvas.width > 0) tempCtx.drawImage(canvas, 0, 0);
-
+    if (!canvas) return;
+    
     dpr = window.devicePixelRatio || 1;
     canvas.width = window.innerWidth * dpr;
     canvas.height = window.innerHeight * dpr;
@@ -75,11 +64,7 @@ const ZenSandbox = (() => {
     ctx.fillStyle = '#e8e2d2'; 
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-    if (tempCanvas.width > 0) {
-      ctx.drawImage(tempCanvas, 0, 0, window.innerWidth, window.innerHeight);
-    } else {
-      loadGarden();
-    }
+    loadGarden();
   }
 
   // --- Drawing Logic ---
@@ -88,16 +73,16 @@ const ZenSandbox = (() => {
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
     
-    // Groove shadow
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
-    ctx.lineWidth = 8;
+    // Darker shadow for visibility
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.lineWidth = 10;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
 
-    // Groove highlight
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 4;
+    // Bright highlight
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 5;
     ctx.stroke();
 
     playNote(y, speed);
@@ -110,11 +95,10 @@ const ZenSandbox = (() => {
     ctx.textBaseline = 'middle';
     
     const icons = { stone: '🪨', bonsai: '🪴', blossom: '🌸' };
-    if (!icons[currentTool]) return; // Failsafe
+    if (!icons[currentTool]) return;
     
     ctx.fillText(icons[currentTool], x, y);
     
-    // Deep gong sound
     if (audioCtx) {
       try {
         const osc = audioCtx.createOscillator();
@@ -133,7 +117,7 @@ const ZenSandbox = (() => {
 
   // --- Interaction Events ---
   function handleStart(e) {
-    if (e.cancelable) e.preventDefault(); // Stop mobile scrolling
+    if (e.cancelable) e.preventDefault(); 
     initAudio();
     const { x, y } = getPos(e);
     isDrawing = true;
@@ -154,7 +138,6 @@ const ZenSandbox = (() => {
     const dist = Math.hypot(x - lastX, y - lastY);
     
     drawRake(x, y, dist);
-    
     lastX = x; lastY = y;
   }
 
@@ -174,7 +157,7 @@ const ZenSandbox = (() => {
   function saveGarden() {
     try {
       localStorage.setItem(STORAGE_KEY, canvas.toDataURL());
-    } catch (e) { console.warn('Failed to save garden', e); }
+    } catch (e) {}
   }
 
   function loadGarden() {
@@ -196,28 +179,33 @@ const ZenSandbox = (() => {
     }
   }
 
-  // --- Session Timer (XP Rewards) ---
+  // --- Session Timer ---
   function startSession() {
     sessionTimer = setInterval(() => {
       zenMinutes++;
       document.getElementById('zen-timer').textContent = `${zenMinutes}m`;
-      
       if (window.Companion) {
         Companion.emit({ id: crypto.randomUUID(), type: 'ZEN_SESSION' });
         if (window.Juice) Juice.playPetSound();
       }
-      
       const toast = document.getElementById('zen-toast');
       toast.textContent = "+50 XP · +10 Calm";
       toast.style.opacity = 1;
       setTimeout(() => toast.style.opacity = 0, 2000);
-
     }, 60000); 
   }
 
   // --- Initialization ---
   return {
     init() {
+      // Find the canvas HERE, not at the top of the file
+      canvas = document.getElementById('zen-canvas');
+      if (!canvas) {
+        console.error("Zen Sandbox: Canvas element not found!");
+        return;
+      }
+      ctx = canvas.getContext('2d');
+
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
       
@@ -231,9 +219,7 @@ const ZenSandbox = (() => {
 
       document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          // CRITICAL FIX: Prevent "Clear" from setting tool to undefined
           if (!e.currentTarget.dataset.tool) return; 
-          
           document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
           e.currentTarget.classList.add('active');
           currentTool = e.currentTarget.dataset.tool;
