@@ -26,7 +26,8 @@
         }
     </script>
     <style>
-        .zen-rock { position: absolute; bottom: 5%; right: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
+        /* Moved to top-left to avoid overlap */
+        .zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
         @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     </style>
 </head>
@@ -43,7 +44,6 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
-            <!-- Memory / Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory" onclick="gotoQuest()">
                 <span>Welcome back. What's on your mind?</span>
             </div>
@@ -51,7 +51,7 @@
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
-                <!-- Entry to Zen Sandbox -->
+                <!-- Entry to Zen Sandbox (Top Left) -->
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
 
                 <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)">
@@ -62,8 +62,12 @@
                 
                 <!-- SPATIAL INVENTORY SLOTS -->
                 <div id="slot-rug" class="item-slot slot-rug in-ring locked" onclick="handleSlotClick('rug')"></div>
-                <div id="slot-plant" class="item-slot slot-plant in-ring locked" onclick="handleSlotClick('plant')"></div>
+                <div id="slot-gate" class="item-slot slot-gate in-ring locked" onclick="handleSlotClick('gate')"></div>
                 <div id="slot-lamp" class="item-slot slot-lamp in-ring locked" onclick="handleSlotClick('lamp')"></div>
+                <div id="slot-plant" class="item-slot slot-plant in-ring locked" onclick="handleSlotClick('plant')"></div>
+                <div id="slot-cat" class="item-slot slot-cat in-ring locked" onclick="handleSlotClick('cat')"></div>
+                <div id="slot-crystal" class="item-slot slot-crystal in-ring locked" onclick="handleSlotClick('crystal')"></div>
+                <div id="slot-tea" class="item-slot slot-tea in-ring locked" onclick="handleSlotClick('tea')"></div>
                 
                 <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -95,9 +99,8 @@
                     </g>
                 </svg>
 
-                <!-- Head / Neck Wearables -->
+                <!-- Wearables -->
                 <div id="slot-scarf" class="item-slot slot-scarf in-ring locked" onclick="handleSlotClick('scarf')"></div>
-                <div id="slot-halo" class="item-slot slot-halo in-ring locked" onclick="handleSlotClick('halo')"></div>
                 <div id="slot-crown" class="item-slot slot-crown in-ring locked" onclick="handleSlotClick('crown')"></div>
             </div>
 
@@ -119,7 +122,7 @@
                 </div>
             </div>
 
-            <!-- HUD (Level & XP) -->
+            <!-- HUD -->
             <div class="hud-container">
                 <div class="hud-top">
                     <div class="level-text">LEVEL <span id="hud-level">1</span></div>
@@ -154,7 +157,7 @@
 
         function handleSlotClick(item) {
             const view = Companion.view();
-            const isWearable = ['halo', 'crown', 'scarf'].includes(item);
+            const isWearable = ['crown', 'scarf'].includes(item);
             
             if (isWearable) {
                 const isUnlocked = view.inventory.wearables.includes(item);
@@ -171,22 +174,19 @@
             }
         }
 
-        // Fallback Emojis in case images haven't been generated yet
         const itemIcons = { 
-            halo: '😇', crown: '👑', scarf: '🧣', 
-            plant: '🪴', lamp: '💡', rug: '🧶' 
+            crown: '👑', scarf: '🧣', plant: '🪴', lamp: '💡', rug: '🧶',
+            gate: '⛩️', crystal: '💎', cat: '🐈', tea: '🍵'
         };
 
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
-            // HUD
             document.getElementById('hud-level').textContent = view.level;
             const progress = (view.xp / view.xpNeeded) * 100;
             document.getElementById('xp-bar-fill').style.width = `${progress}%`;
             document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
 
-            // Quest Bubble
             const bubble = document.getElementById('companion-memory');
             if (!bubble.classList.contains('is-expanded') && !bubble.innerHTML.includes('fa-spinner')) {
                 if (view.quest) {
@@ -198,23 +198,20 @@
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
 
-            // --- Update Spatial Slots ---
-            const slots = ['halo', 'crown', 'scarf', 'plant', 'lamp', 'rug'];
+            const slots = ['crown', 'scarf', 'plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
             slots.forEach(item => {
                 const el = document.getElementById(`slot-${item}`);
                 if (!el) return;
                 
-                const isWearable = ['halo', 'crown', 'scarf'].includes(item);
+                const isWearable = ['crown', 'scarf'].includes(item);
                 const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
                 const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
 
-                // Render image. If it fails to load, show the emoji fallback.
                 el.innerHTML = `
-                    <img src="assets/${item}.png" alt="${item}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <span style="display:none; font-size:28px;">${itemIcons[item]}</span>
+                    <img src="assets/${item}.png" alt="${item}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span style="display:none; font-size:24px; width:100%; height:100%; align-items:center; justify-content:center;">${itemIcons[item]}</span>
                 `;
                 
-                // Apply classes: locked, unlocked, equipped, or in-ring
                 let classes = `item-slot slot-${item} `;
                 classes += isUnlocked ? 'unlocked ' : 'locked ';
                 classes += isEquipped ? 'equipped' : 'in-ring';
