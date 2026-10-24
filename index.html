@@ -25,27 +25,9 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
-
     <style>
-        /* Zen Rock Entry Point */
-        .zen-rock {
-            position: absolute;
-            bottom: 15%;
-            left: 15%;
-            z-index: 20;
-            font-size: 36px;
-            text-decoration: none;
-            filter: drop-shadow(0 0 15px var(--accent));
-            animation: float-rock 4s ease-in-out infinite;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .zen-rock:active { transform: scale(0.9); }
-        
-        @keyframes float-rock {
-            0%, 100% { transform: translateY(0) rotate(-5deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
-        }
+        .zen-rock { position: absolute; bottom: 10%; right: 10%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite; text-decoration: none; }
+        @keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     </style>
 </head>
 <body>
@@ -69,7 +51,7 @@
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
-                <!-- Zen Sandbox Entry (The Glowing Rock) -->
+                <!-- Entry to Zen Sandbox -->
                 <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
 
                 <!-- Audio Toggle Button -->
@@ -80,23 +62,11 @@
                 <!-- Dynamic Aura Ring -->
                 <div class="aura-ring"></div>
                 
-                <!-- Decor Items -->
-                <svg class="decor decor-plant" style="bottom: 10%; left: 10%; width: 60px; height: 80px;" viewBox="0 0 60 80">
-                    <path d="M 30 80 L 30 40" stroke="#2e7d32" stroke-width="4"/>
-                    <circle cx="30" cy="40" r="20" fill="#4caf50" opacity="0.8"/>
-                    <circle cx="15" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
-                    <circle cx="45" cy="50" r="12" fill="#388e3c" opacity="0.8"/>
-                </svg>
-                <svg class="decor decor-lamp" style="top: 10%; right: 10%; width: 50px; height: 70px;" viewBox="0 0 40 60">
-                    <rect x="15" y="20" width="10" height="40" fill="#555"/>
-                    <path d="M 5 20 L 35 20 L 25 0 L 15 0 Z" fill="#ffd54f"/>
-                    <circle cx="20" cy="20" r="30" fill="#ffd54f" opacity="0.15"/>
-                </svg>
-                <svg class="decor decor-rug" style="bottom: 0; width: 100%; height: 40px;" viewBox="0 0 300 40">
-                    <ellipse cx="150" cy="20" rx="140" ry="15" fill="#d32f2f" opacity="0.4"/>
-                    <ellipse cx="150" cy="20" rx="120" ry="10" fill="#b71c1c" opacity="0.6"/>
-                </svg>
-
+                <!-- SPATIAL INVENTORY SLOTS (Background) -->
+                <div id="slot-rug" class="item-slot slot-rug locked" onclick="handleSlotClick('rug')"></div>
+                <div id="slot-plant" class="item-slot slot-plant locked" onclick="handleSlotClick('plant')"></div>
+                <div id="slot-lamp" class="item-slot slot-lamp locked" onclick="handleSlotClick('lamp')"></div>
+                
                 <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -106,13 +76,6 @@
                         </radialGradient>
                     </defs>
                     <g class="bob-group">
-                        <ellipse class="cosmetic halo" cx="100" cy="42" rx="35" ry="10" fill="none" stroke="#ffd700" stroke-width="4" opacity="0.8" />
-                        <path class="cosmetic sprout" d="M 100 58 Q 95 40 80 45 Q 95 50 100 58 Z" fill="#4ade80" />
-                        <path class="cosmetic sprout" d="M 100 58 Q 105 40 120 45 Q 105 50 100 58 Z" fill="#22c55e" />
-                        <path class="cosmetic scarf" d="M 50 140 Q 100 160 150 140 L 150 155 Q 100 175 50 155 Z" fill="#ef4444" />
-                        <path class="cosmetic scarf" d="M 135 145 L 145 180 L 130 180 Z" fill="#dc2626" />
-                        <path class="cosmetic crown" d="M 75 55 L 85 25 L 100 45 L 115 25 L 125 55 Z" fill="#fbbf24" stroke="#b45309" stroke-width="2" stroke-linejoin="round" />
-                        
                         <g class="breath-group">
                             <path class="body" d="M 100 175 C 35 175, 25 110, 45 70 C 65 35, 135 35, 155 70 C 175 110, 165 175, 100 175 Z" fill="url(#bodyGrad)"/>
                             <g class="face">
@@ -133,6 +96,11 @@
                         </g>
                     </g>
                 </svg>
+
+                <!-- SPATIAL INVENTORY SLOTS (Foreground/Wearables) -->
+                <div id="slot-scarf" class="item-slot slot-scarf locked" onclick="handleSlotClick('scarf')"></div>
+                <div id="slot-halo" class="item-slot slot-halo locked" onclick="handleSlotClick('halo')"></div>
+                <div id="slot-crown" class="item-slot slot-crown locked" onclick="handleSlotClick('crown')"></div>
             </div>
 
             <!-- AI Chat Bar -->
@@ -164,13 +132,6 @@
                 </div>
             </div>
 
-            <!-- Inventory -->
-            <div class="inv-tabs">
-                <button class="inv-tab active" onclick="switchTab('wearables')" id="tab-wearables">Wearables</button>
-                <button class="inv-tab" onclick="switchTab('decor')" id="tab-decor">Sanctuary</button>
-            </div>
-            <div class="inventory-container" id="inventory"></div>
-
         </main>
     </div>
 
@@ -184,11 +145,9 @@
     <script>
         function navigateToPage(page) { window.location.href = page; }
         let currentQuestLink = null;
-        let currentInvTab = 'wearables';
 
         function gotoQuest() { if (currentQuestLink) window.location.href = currentQuestLink; }
 
-        let petsToday = 0;
         function petCompanion() {
             const svg = document.getElementById('companion');
             svg.style.transform = 'scale(0.85) translateY(-20px)';
@@ -196,15 +155,24 @@
             if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
-        function switchTab(tab) {
-            currentInvTab = tab;
-            document.getElementById('tab-wearables').classList.toggle('active', tab === 'wearables');
-            document.getElementById('tab-decor').classList.toggle('active', tab === 'decor');
-            updateDashboard(Companion.view());
+        function handleSlotClick(item) {
+            const view = Companion.view();
+            const isWearable = ['halo', 'crown', 'scarf'].includes(item);
+            
+            if (isWearable) {
+                const isUnlocked = view.inventory.wearables.includes(item);
+                if (!isUnlocked) return; 
+                
+                const isEquipped = view.equipped.wearable === item;
+                Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: isEquipped ? null : item } });
+            } else {
+                const isUnlocked = view.inventory.decor.includes(item);
+                if (!isUnlocked) return;
+                
+                const isEquipped = view.equipped.decor.includes(item);
+                Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } });
+            }
         }
-
-        function equipWearable(item) { if (item) Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: item } }); }
-        function toggleDecor(item) { if (item) Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } }); }
 
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
@@ -224,39 +192,25 @@
                 }
             }
 
-            // Sanctuary Updates
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
-            sanctuary.setAttribute('data-decor', view.equipped.decor.join(' '));
-            
-            // Inventory
-            const invContainer = document.getElementById('inventory');
-            invContainer.innerHTML = '';
-            if (currentInvTab === 'wearables') {
-                const items = ['halo', 'sprout', 'scarf', 'crown'];
-                items.forEach(item => {
-                    const hasItem = view.inventory.wearables.includes(item);
-                    const isEquipped = view.equipped.wearable === item;
-                    const div = document.createElement('div');
-                    const icons = { halo: '😇', sprout: '🌱', scarf: '🧣', crown: '👑' };
-                    div.className = `inv-item ${!hasItem ? 'empty' : ''} ${isEquipped ? 'equipped' : ''}`;
-                    div.textContent = hasItem ? icons[item] : '?';
-                    if (hasItem) div.onclick = () => equipWearable(isEquipped ? null : item);
-                    invContainer.appendChild(div);
-                });
-            } else {
-                const items = ['plant', 'lamp', 'rug', 'terminal'];
-                items.forEach(item => {
-                    const hasItem = view.inventory.decor.includes(item);
-                    const isEquipped = view.equipped.decor.includes(item);
-                    const div = document.createElement('div');
-                    const icons = { plant: '🪴', lamp: '💡', rug: '🧶', terminal: '🖥️' };
-                    div.className = `inv-item ${!hasItem ? 'empty' : ''} ${isEquipped ? 'equipped' : ''}`;
-                    div.textContent = hasItem ? icons[item] : '?';
-                    if (hasItem) div.onclick = () => toggleDecor(item);
-                    invContainer.appendChild(div);
-                });
-            }
+
+            // --- Update Spatial Slots ---
+            const slots = ['halo', 'crown', 'scarf', 'plant', 'lamp', 'rug'];
+            slots.forEach(item => {
+                const el = document.getElementById(`slot-${item}`);
+                if (!el) return;
+                
+                const isWearable = ['halo', 'crown', 'scarf'].includes(item);
+                const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
+                const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
+
+                // Inject the image (Requires assets to be uploaded)
+                el.innerHTML = `<img src="assets/${item}.png" alt="${item}">`;
+                
+                // Set Classes (locked, unlocked, equipped)
+                el.className = `item-slot slot-${item} ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'equipped' : ''}`;
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
