@@ -1,9 +1,9 @@
 /**
- * Vitverse Companion — Real-Life RPG Engine (v3.2)
- * Added: ZEN_SESSION for the Zen Sandbox
+ * Vitverse Companion — Real-Life RPG Engine (v3.3)
+ * Added new loot items and removed halo.
  */
 const Companion = (() => {
-  const KEY = 'vitverse.companion.v3'; // Kept as v3 to preserve user data
+  const KEY = 'vitverse.companion.v3'; 
 
   const CFG = {
     version: 3,
@@ -12,12 +12,11 @@ const Companion = (() => {
     dailyCap:  { calm: 25, energy: 20, rest: 25, mood: 15 },
     maxEvents: 200,
     maxSeen:   50,
-    maxDecayH: 720, // 30 days
+    maxDecayH: 720,
   };
 
   const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
-  const dateKey = (d = new Date()) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const dateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   const urlParams = new URLSearchParams(window.location.search);
   const guildParam = urlParams.get('guild');
@@ -25,16 +24,12 @@ const Companion = (() => {
   const blank = () => ({
     version: CFG.version,
     vars: { calm: 60, energy: 60, rest: 60, mood: 60 },
-    xp: 0,
-    level: 1,
+    xp: 0, level: 1,
     inventory: { wearables: [], decor: [] },
     equipped: { wearable: null, decor: [] }, 
     guild: { code: guildParam || null, sharedStreak: 0, partnerActive: false },
-    lastTick: Date.now(),
-    day: dateKey(),
-    gains: { calm: 0, energy: 0, rest: 0, mood: 0 },
-    seen: [],
-    events: [],
+    lastTick: Date.now(), day: dateKey(), gains: { calm: 0, energy: 0, rest: 0, mood: 0 },
+    seen: [], events: [],
   });
 
   function decayed(s, now) {
@@ -54,30 +49,22 @@ const Companion = (() => {
     return r < 0.5 ? 1 : r < 0.8 ? 0.6 : r >= 1 ? 0 : 0.3;
   };
 
-  const LOOT_WEARABLES = ['halo', 'sprout', 'scarf', 'crown'];
-  const LOOT_DECOR = ['plant', 'lamp', 'rug', 'terminal'];
+  // UPDATED LOOT TABLES
+  const LOOT_WEARABLES = ['crown', 'scarf'];
+  const LOOT_DECOR = ['plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
 
   const RULES = {
-    BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({
-      calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5,
-      xp: 50 }) },
-    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ 
-      energy: 5, mood: 2, xp: 100, lootCheck: true }) },
+    BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({ calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5, xp: 50 }) },
+    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ energy: 5, mood: 2, xp: 100, lootCheck: true }) },
     SLEEP_LOGGED:        { m: 'sleep',       d: p => {
-      const h = p.hours ?? 7;
-      const q = clamp(p.quality ?? 3, 1, 5);
+      const h = p.hours ?? 7; const q = clamp(p.quality ?? 3, 1, 5);
       const band = (h >= 7 && h <= 9) ? 20 : (h >= 6 && h <= 10) ? 12 : 5;
       return { rest: band * (0.8 + 0.1 * (q - 1)), xp: 80 };
     } },
-    MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({
-      mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood),
-      xp: 20 }) },
+    MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({ mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood), xp: 20 }) },
     REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ mood: 3, xp: 50 }) },
     EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ energy: 8, mood: 2, xp: 75, lootCheck: true }) },
-    
-    // --- New Zen Sandbox Rule ---
     ZEN_SESSION:         { m: 'zen',         d: () => ({ calm: 10, xp: 50 }) }, 
-    
     EQUIP_WEARABLE:      { m: 'inventory',   d: () => ({}) }, 
     TOGGLE_DECOR:        { m: 'inventory',   d: () => ({}) }, 
     LINK_GUILD:          { m: 'guild',       d: () => ({}) },
@@ -88,28 +75,20 @@ const Companion = (() => {
     if (!rule) throw new Error(`unknown event: ${event?.type}`);
     if (event.id && s.seen.includes(event.id)) return s;
 
-    // Special Handlers
-    if (event.type === 'EQUIP_WEARABLE') {
-      return { ...s, equipped: { ...s.equipped, wearable: event.payload.item } };
-    }
+    if (event.type === 'EQUIP_WEARABLE') return { ...s, equipped: { ...s.equipped, wearable: event.payload.item } };
     if (event.type === 'TOGGLE_DECOR') {
       const item = event.payload.item;
       const currentDecor = s.equipped.decor || [];
-      const newDecor = currentDecor.includes(item) 
-        ? currentDecor.filter(d => d !== item) 
-        : [...currentDecor, item];
+      const newDecor = currentDecor.includes(item) ? currentDecor.filter(d => d !== item) : [...currentDecor, item];
       return { ...s, equipped: { ...s.equipped, decor: newDecor } };
     }
-    if (event.type === 'LINK_GUILD') {
-      return { ...s, guild: { ...s.guild, code: event.payload.code, partnerActive: true } };
-    }
+    if (event.type === 'LINK_GUILD') return { ...s, guild: { ...s.guild, code: event.payload.code, partnerActive: true } };
 
     const vars = decayed(s, now);
     const raw  = rule.d(event.payload ?? {}, vars);
     const xpGain = raw.xp ?? 0;
     const hasLootCheck = raw.lootCheck ?? false;
-    delete raw.xp;
-    delete raw.lootCheck;
+    delete raw.xp; delete raw.lootCheck;
 
     const today = dateKey(new Date(now));
     const gains = today === s.day ? { ...s.gains } : { calm: 0, energy: 0, rest: 0, mood: 0 };
@@ -125,34 +104,22 @@ const Companion = (() => {
       vars[k] = clamp(vars[k] + delta);
     }
 
-    // Leveling
     let newXp = s.xp + xpGain;
     let newLevel = s.level;
     let xpNeeded = newLevel * 1000;
-    while (newXp >= xpNeeded) {
-      newXp -= xpNeeded;
-      newLevel++;
-      xpNeeded = newLevel * 1000;
-    }
+    while (newXp >= xpNeeded) { newXp -= xpNeeded; newLevel++; xpNeeded = newLevel * 1000; }
 
-    // Loot
     let newInventory = { ...s.inventory, wearables: [...s.inventory.wearables], decor: [...s.inventory.decor] };
     let newEquipped = { ...s.equipped };
     
-    if (hasLootCheck && Math.random() < 0.3) { // 30% drop rate
-      const dropDecor = Math.random() < 0.5;
+    if (hasLootCheck && Math.random() < 0.4) { // Increased drop rate slightly
+      const dropDecor = Math.random() < 0.7; // 70% chance for decor, 30% wearable
       if (dropDecor) {
         const avail = LOOT_DECOR.filter(i => !newInventory.decor.includes(i));
-        if (avail.length > 0) {
-          const drop = avail[Math.floor(Math.random() * avail.length)];
-          newInventory.decor.push(drop);
-        }
+        if (avail.length > 0) newInventory.decor.push(avail[Math.floor(Math.random() * avail.length)]);
       } else {
         const avail = LOOT_WEARABLES.filter(i => !newInventory.wearables.includes(i));
-        if (avail.length > 0) {
-          const drop = avail[Math.floor(Math.random() * avail.length)];
-          newInventory.wearables.push(drop);
-        }
+        if (avail.length > 0) newInventory.wearables.push(avail[Math.floor(Math.random() * avail.length)]);
       }
     }
 
@@ -178,26 +145,14 @@ const Companion = (() => {
   function view(s, now = Date.now()) {
     const v = decayed(s, now);
     const h = new Date(now).getHours();
-    
-    // Find the dominant stat for the Aura System
-    const auraStats = [
-      { name: 'calm', val: v.calm },
-      { name: 'energy', val: v.energy },
-      { name: 'rest', val: v.rest },
-      { name: 'mood', val: v.mood }
-    ];
+    const auraStats = [ { name: 'calm', val: v.calm }, { name: 'energy', val: v.energy }, { name: 'rest', val: v.rest }, { name: 'mood', val: v.mood } ];
     auraStats.sort((a, b) => b.val - a.val); 
-    const dominantStat = auraStats[0].name;
 
     return {
       vars: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round(x)])),
-      xp: s.xp,
-      level: s.level,
-      xpNeeded: s.level * 1000,
-      inventory: s.inventory,
-      equipped: s.equipped,
-      guild: s.guild,
-      dominantStat: dominantStat,
+      xp: s.xp, level: s.level, xpNeeded: s.level * 1000,
+      inventory: s.inventory, equipped: s.equipped, guild: s.guild,
+      dominantStat: auraStats[0].name,
       moodWord:  v.mood >= 80 ? 'radiant' : v.mood >= 60 ? 'content' : v.mood >= 45 ? 'settled' : v.mood >= 30 ? 'quiet' : 'low',
       energyBand: v.energy >= 70 ? 'bouncy' : v.energy >= 45 ? 'steady' : 'slow',
       breathSync: v.calm >= 70 ? 'slow' : v.calm >= 45 ? 'even' : 'shallow',
@@ -217,14 +172,8 @@ const Companion = (() => {
   const fire = s => window.dispatchEvent(new CustomEvent('companion:update', { detail: view(s) }));
 
   return {
-    get: () => load(),
-    view: (now) => view(load(), now),
-    emit(event) {
-      const next = apply(load(), event);
-      save(next);
-      fire(next);
-      return view(next);
-    },
+    get: () => load(), view: (now) => view(load(), now),
+    emit(event) { const next = apply(load(), event); save(next); fire(next); return view(next); },
     reset() { localStorage.removeItem(KEY); fire(blank()); },
     subscribe(fn) { window.addEventListener('companion:update', e => fn(e.detail)); },
   };
