@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BreatheWell — Vitverse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="breathewell.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
+    <script src="companion.js"></script>
+    <script src="juice.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -21,73 +24,239 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
-    <style>
-        .logo-link { display: inline-block; margin-top: 20px; margin-bottom: 20px; cursor: pointer; transition: transform 0.2s ease; }
-        .logo-link:active { transform: scale(0.95); }
-        .logo-link img { width: 160px; height: auto; display: block; }
-    </style>
 </head>
 <body>
-    <a href="index.html" class="logo-link" aria-label="Back to Vitverse">
-        <img src="logo.png" alt="VITVERSE Logo">
-    </a>
 
-    <div class="menu">
-        <button class="neumorphic-btn" onclick="selectBreathing('b478')">4-7-8 Breathing</button>
-        <button class="neumorphic-btn" onclick="selectBreathing('box')">Box Breathing</button>
-        <button class="neumorphic-btn" onclick="selectBreathing('alternateNostril')">Alternate Nostril</button>
+    <!-- SCREEN 1: SELECTION -->
+    <div id="screen-selection" class="screen active">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        
+        <div class="selection-content">
+            <h1 class="title">BreatheWell</h1>
+            <p class="subtitle">Choose your protocol</p>
+            
+            <div class="protocol-grid" id="protocol-grid">
+                <button class="protocol-btn active" data-protocol="b478">
+                    <span class="p-name">4-7-8</span>
+                    <span class="p-desc">Relaxation</span>
+                </button>
+                <button class="protocol-btn" data-protocol="box">
+                    <span class="p-name">Box</span>
+                    <span class="p-desc">Focus</span>
+                </button>
+            </div>
+
+            <p class="subtitle" style="margin-top: 30px;">Choose duration</p>
+            <div class="duration-grid" id="duration-grid">
+                <button class="duration-btn" data-time="60">1 min</button>
+                <button class="duration-btn active" data-time="180">3 min</button>
+                <button class="duration-btn" data-time="300">5 min</button>
+                <button class="duration-btn" data-time="600">10 min</button>
+            </div>
+
+            <button class="start-btn" onclick="startSession()">Enter Zen Mode</button>
+        </div>
     </div>
 
-    <div class="start-container">
-        <button class="neumorphic-btn" id="start-button" onclick="startBreathing()">Start</button>
+    <!-- SCREEN 2: ZEN MODE (Active Session) -->
+    <div id="screen-session" class="screen">
+        <div class="zen-header">
+            <div class="timer-display" id="session-timer">03:00</div>
+            <button class="exit-zen-btn" onclick="endSession(true)">End</button>
+        </div>
+        
+        <div class="breathing-stage">
+            <div class="breathing-orb" id="orb"></div>
+            <div class="breathing-text" id="breath-text">Get Ready</div>
+            <div id="xp-ticker-area"></div>
+        </div>
     </div>
 
-    <div class="container">
-        <div class="circle"></div>
-        <div class="circle2"></div>
+    <!-- SCREEN 3: SUMMARY -->
+    <div id="screen-summary" class="screen">
+        <div class="summary-card">
+            <h2>Session Complete</h2>
+            <div class="summary-icon"><i class="fa-solid fa-check"></i></div>
+            
+            <div class="summary-stats">
+                <div class="stat-row">
+                    <span>Time in Zen:</span>
+                    <strong id="sum-time">0m</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Cycles Completed:</span>
+                    <strong id="sum-cycles">0</strong>
+                </div>
+                <div class="stat-row highlight">
+                    <span>Calm & XP Gained:</span>
+                    <strong id="sum-xp">+0 XP</strong>
+                </div>
+            </div>
+            
+            <button class="start-btn" onclick="window.location.href='index.html'">Return to Sanctuary</button>
+        </div>
     </div>
 
     <script>
-        let cycleTimer = null;
-        const CYCLE_MS = { b478: 19000, box: 16000, alternateNostril: 16000 };
+        let selectedProtocol = 'b478';
+        let selectedDuration = 180; // seconds
+        let isSessionActive = false;
+        
+        let timeLeft = 0;
+        let cyclesCompleted = 0;
+        let sessionInterval = null;
+        let breathTimeout = null;
+        let currentPhase = 0;
 
-        function stopBreathing() {
-            if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
-        }
+        const PATTERNS = {
+            b478: {
+                name: '4-7-8',
+                phases: [
+                    { label: 'Inhale', duration: 4000, scale: 1.5, vibrate: [100] },
+                    { label: 'Hold',   duration: 7000, scale: 1.5, vibrate: [] },
+                    { label: 'Exhale', duration: 8000, scale: 1.0, vibrate: [50, 100, 50] }
+                ],
+                totalMs: 19000
+            },
+            box: {
+                name: 'Box',
+                phases: [
+                    { label: 'Inhale', duration: 4000, scale: 1.5, vibrate: [100] },
+                    { label: 'Hold',   duration: 4000, scale: 1.5, vibrate: [] },
+                    { label: 'Exhale', duration: 4000, scale: 1.0, vibrate: [50, 100, 50] },
+                    { label: 'Hold',   duration: 4000, scale: 1.0, vibrate: [] }
+                ],
+                totalMs: 16000
+            }
+        };
 
-        function selectBreathing(type) {
-            stopBreathing();
-            document.body.classList.remove('b478', 'box', 'alternateNostril');
-            document.body.classList.add(type);
-            document.getElementById('start-button').style.display = 'block';
-            document.querySelector('.container').style.display = 'none';
-        }
-
-        function startBreathing() {
-            stopBreathing();
-            document.querySelector('.container').style.display = 'block';
-            document.getElementById('start-button').style.display = 'none';
-
-            const protocol =
-                document.body.classList.contains('b478')             ? 'b478' :
-                document.body.classList.contains('box')              ? 'box'    :
-                document.body.classList.contains('alternateNostril') ? 'alternateNostril' : 'b478';
-
-            cycleTimer = setInterval(() => {
-                if (window.Companion) {
-                    Companion.emit({
-                        id: (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2))),
-                        type: 'BREATHE_COMPLETE',
-                        payload: { protocol },
-                    });
-                }
-            }, CYCLE_MS[protocol]);
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) stopBreathing();
+        // --- UI Selection Logic ---
+        document.querySelectorAll('.protocol-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                selectedProtocol = e.currentTarget.dataset.protocol;
+            });
         });
+
+        document.querySelectorAll('.duration-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                selectedDuration = parseInt(e.currentTarget.dataset.time);
+            });
+        });
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- Session Logic ---
+        function startSession() {
+            switchScreen('screen-session');
+            isSessionActive = true;
+            timeLeft = selectedDuration;
+            cyclesCompleted = 0;
+            currentPhase = 0;
+
+            updateTimerDisplay();
+            
+            // Start the countdown
+            sessionInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) endSession(false);
+            }, 1000);
+
+            // Start the breathing loop
+            runBreathPhase();
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('session-timer').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function runBreathPhase() {
+            if (!isSessionActive) return;
+            
+            const pattern = PATTERNS[selectedProtocol];
+            const phase = pattern.phases[currentPhase];
+            const orb = document.getElementById('orb');
+            const text = document.getElementById('breath-text');
+
+            // Update Text & Orb
+            text.textContent = phase.label;
+            orb.style.transitionDuration = `${phase.duration}ms`;
+            orb.style.transform = `scale(${phase.scale})`;
+
+            // Haptics
+            if (navigator.vibrate && phase.vibrate.length > 0) {
+                navigator.vibrate(phase.vibrate);
+            }
+
+            // Schedule next phase
+            breathTimeout = setTimeout(() => {
+                currentPhase++;
+                
+                if (currentPhase >= pattern.phases.length) {
+                    // Cycle complete!
+                    currentPhase = 0;
+                    cyclesCompleted++;
+                    triggerCycleReward();
+                }
+                
+                runBreathPhase();
+            }, phase.duration);
+        }
+
+        function triggerCycleReward() {
+            // 1. Emit to Companion Engine
+            if (window.Companion) {
+                Companion.emit({
+                    id: crypto.randomUUID(),
+                    type: 'BREATHE_COMPLETE',
+                    payload: { protocol: selectedProtocol }
+                });
+            }
+
+            // 2. Play Sound
+            if (window.Juice) Juice.playPetSound();
+
+            // 3. Spawn Floating XP
+            const tickerArea = document.getElementById('xp-ticker-area');
+            const xpEl = document.createElement('div');
+            xpEl.className = 'floating-xp';
+            xpEl.textContent = '+8 Calm · +50 XP';
+            tickerArea.appendChild(xpEl);
+            
+            setTimeout(() => xpEl.remove(), 2000);
+        }
+
+        function endSession(early = false) {
+            isSessionActive = false;
+            clearInterval(sessionInterval);
+            clearTimeout(breathTimeout);
+            
+            if (navigator.vibrate) navigator.vibrate(0); // Stop vibrations
+
+            if (early && cyclesCompleted === 0) {
+                // If they quit immediately, just go back
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Populate Summary
+            document.getElementById('sum-time').textContent = `${Math.floor((selectedDuration - timeLeft) / 60)}m ${((selectedDuration - timeLeft) % 60)}s`;
+            document.getElementById('sum-cycles').textContent = cyclesCompleted;
+            
+            const xpGained = cyclesCompleted * 50;
+            document.getElementById('sum-xp').textContent = `+${xpGained} XP`;
+
+            switchScreen('screen-summary');
+        }
     </script>
-    <script src="companion.js"></script>
 </body>
 </html>
