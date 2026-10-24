@@ -25,6 +25,28 @@
             }).catch((error) => console.error('SW registration failed:', error));
         }
     </script>
+
+    <style>
+        /* Zen Rock Entry Point */
+        .zen-rock {
+            position: absolute;
+            bottom: 15%;
+            left: 15%;
+            z-index: 20;
+            font-size: 36px;
+            text-decoration: none;
+            filter: drop-shadow(0 0 15px var(--accent));
+            animation: float-rock 4s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .zen-rock:active { transform: scale(0.9); }
+        
+        @keyframes float-rock {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
@@ -47,6 +69,9 @@
             <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
+                <!-- Zen Sandbox Entry (The Glowing Rock) -->
+                <a href="zen.html" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
+
                 <!-- Audio Toggle Button -->
                 <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)" aria-label="Toggle Ambient Sound">
                     <i class="fa-solid fa-volume-xmark"></i>
@@ -149,6 +174,7 @@
         </main>
     </div>
 
+    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
