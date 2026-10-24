@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Sandbox — Vitverse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <script src="companion.js"></script>
+    <script src="juice.js"></script>
+    <script src="zen.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            overflow: hidden; background: #e8e2d2; font-family: 'Inter', sans-serif; 
+            touch-action: none; user-select: none; 
+        }
+        
+        /* The Canvas */
+        #zen-canvas { display: block; cursor: crosshair; }
+
+        /* Top UI */
+        .zen-header {
+            position: fixed; top: 16px; left: 16px; right: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            pointer-events: none; z-index: 10;
+        }
+        .zen-exit {
+            background: rgba(0,0,0,0.1); border: none; color: #555;
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: auto; transition: background 0.2s;
+            text-decoration: none;
+        }
+        .zen-exit:hover { background: rgba(0,0,0,0.2); }
+        
+        .zen-stats {
+            background: rgba(255,255,255,0.4); backdrop-filter: blur(8px);
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold;
+            color: #444; display: flex; align-items: center; gap: 8px;
+        }
+
+        /* Bottom Toolbar */
+        .zen-toolbar {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px);
+            padding: 12px; border-radius: 32px;
+            display: flex; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .tool-btn {
+            width: 50px; height: 50px; border-radius: 50%;
+            border: 2px solid transparent; background: transparent;
+            font-size: 24px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .tool-btn.active {
+            background: rgba(255,255,255,0.8); border-color: #888; 
+            transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        #zen-toast {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            background: #00e5ff; color: #000; font-weight: bold; font-size: 12px;
+            padding: 6px 16px; border-radius: 20px; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 10; box-shadow: 0 4px 12px rgba(0, 229, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="zen-canvas"></canvas>
+
+    <div class="zen-header">
+        <a href="index.html" class="zen-exit"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="zen-stats">
+            <i class="fa-solid fa-spa"></i>
+            <span id="zen-timer">0m</span>
+        </div>
+    </div>
+    
+    <div id="zen-toast">+50 XP</div>
+
+    <div class="zen-toolbar">
+        <button class="tool-btn active" data-tool="rake" title="Rake Sand">🪮</button>
+        <button class="tool-btn" data-tool="stone" title="Place Stone">🪨</button>
+        <button class="tool-btn" data-tool="bonsai" title="Bonsai Tree">🪴</button>
+        <button class="tool-btn" data-tool="blossom" title="Cherry Blossom">🌸</button>
+        <button class="tool-btn" id="zen-clear" title="Clear Garden" style="font-size:18px;">♻️</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            ZenSandbox.init();
+        });
+    </script>
+</body>
+</html>
