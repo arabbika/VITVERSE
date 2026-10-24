@@ -70,25 +70,25 @@
 @keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
 @keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
 
-/* --- EQUIPPED ITEMS (Inside Sanctuary) --- */
+/* --- EQUIPPED ITEMS (Floating on the Edge) --- */
 .item-slot {
   position: absolute; display: none; align-items: center; justify-content: center;
-  z-index: 15; pointer-events: none; /* Let clicks pass through to the blob */
+  z-index: 15; pointer-events: none; 
 }
 .item-slot.visible { display: flex; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.item-slot img { width: 100%; height: 100%; object-fit: contain; }
+.item-slot img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4)); }
 @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-/* Specific Equipped Positions */
-.slot-crown { top: 10%; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; z-index: 25; }
-.slot-scarf { top: 52%; left: 50%; transform: translateX(-50%); width: 80px; height: 40px; z-index: 20; }
-.slot-rug { bottom: 2%; left: 50%; transform: translateX(-50%); width: 160px; height: 80px; z-index: 2; }
-.slot-gate { top: 5%; left: 50%; transform: translateX(-50%); width: 120px; height: 80px; z-index: 3; }
-.slot-lamp { top: 15%; right: 15%; width: 50px; height: 70px; z-index: 4; }
-.slot-plant { bottom: 15%; left: 15%; width: 60px; height: 60px; z-index: 5; }
-.slot-cat { bottom: 10%; right: 15%; width: 60px; height: 60px; z-index: 18; }
-.slot-crystal { bottom: 10%; left: 15%; width: 50px; height: 50px; z-index: 18; }
-.slot-tea { top: 45%; right: 20%; width: 60px; height: 60px; z-index: 18; }
+/* Static Floating Positions */
+.slot-crown { top: 12%; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; }
+.slot-gate { top: 22%; left: 15%; width: 70px; height: 50px; }
+.slot-tea { top: 22%; right: 15%; width: 50px; height: 50px; }
+.slot-lamp { top: 45%; left: 5%; width: 40px; height: 60px; }
+.slot-cat { top: 45%; right: 5%; width: 50px; height: 50px; }
+.slot-plant { bottom: 22%; left: 15%; width: 50px; height: 50px; }
+.slot-crystal { bottom: 22%; right: 15%; width: 40px; height: 40px; }
+.slot-rug { bottom: 5%; left: 50%; transform: translateX(-50%); width: 140px; height: 70px; }
+.slot-scarf { top: 12%; right: 20%; width: 60px; height: 30px; }
 
 /* --- INVENTORY DOCK (Below Blob) --- */
 .inventory-dock {
@@ -97,10 +97,9 @@
   background: var(--bg-surface); border: 1px solid var(--border-glass);
   border-radius: 20px; backdrop-filter: blur(12px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  scrollbar-width: none; /* Hide scrollbar Firefox */
-  z-index: 25; position: relative;
+  scrollbar-width: none; z-index: 25; position: relative;
 }
-.inventory-dock::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
+.inventory-dock::-webkit-scrollbar { display: none; }
 
 .dock-item {
   width: 50px; height: 50px; flex-shrink: 0;
@@ -111,11 +110,8 @@
 }
 .dock-item img { width: 80%; height: 80%; object-fit: contain; }
 
-/* Locked State */
 .dock-item.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(100%); }
-/* Unlocked Hover */
 .dock-item.unlocked:hover { transform: translateY(-4px); background: rgba(255,255,255,0.1); }
-/* Equipped State */
 .dock-item.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); background: rgba(0, 229, 255, 0.1); }
 
 /* --- UI & HUD --- */
