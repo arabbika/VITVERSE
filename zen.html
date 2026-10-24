@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zen Sandbox — Vitverse</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <script src="companion.js"></script>
-    <script src="juice.js"></script>
-    <script src="zen.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -42,7 +39,7 @@
         /* Bottom Toolbar */
         .zen-toolbar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px);
             padding: 12px; border-radius: 32px;
             display: flex; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             z-index: 10;
@@ -55,7 +52,7 @@
             display: flex; align-items: center; justify-content: center;
         }
         .tool-btn.active {
-            background: rgba(255,255,255,0.8); border-color: #888; 
+            background: rgba(255,255,255,0.9); border-color: #888; 
             transform: scale(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
@@ -88,6 +85,10 @@
         <button class="tool-btn" id="zen-clear" title="Clear Garden" style="font-size:18px;">♻️</button>
     </div>
 
+    <!-- SCRIPTS AT THE BOTTOM -->
+    <script src="companion.js"></script>
+    <script src="juice.js"></script>
+    <script src="zen.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             ZenSandbox.init();
