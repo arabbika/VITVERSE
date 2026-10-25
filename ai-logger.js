@@ -67,12 +67,17 @@ const AILogger = (() => {
 
     html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic)}</div></div>`;
     
-    // FIXED: Added event.stopPropagation() to prevent redirecting
-    html += `<button class="dismiss-plan-btn" onclick="event.stopPropagation(); AILogger.dismiss()"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
+    // Pass the event directly
+    html += `<button class="dismiss-plan-btn" onclick="AILogger.dismiss(event)"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
     return html;
   }
 
-  function dismiss() {
+  // Handle the event safely
+  function dismiss(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const bubble = document.getElementById('companion-memory');
     bubble.classList.remove('is-expanded', 'is-pinned');
     if (window.Companion) window.dispatchEvent(new CustomEvent('companion:update', { detail: Companion.view() }));
@@ -102,9 +107,8 @@ const AILogger = (() => {
 
       if (!response.ok || data.error) throw new Error(data.error || 'Failed.');
 
-      input.value = ''; // Clear only on success
+      input.value = ''; 
 
-      // --- POSTHOG ANALYTICS ---
       if (window.posthog) {
         if (!localStorage.getItem('vitverse_first_dump')) {
           window.posthog.capture('first_dump');
@@ -118,7 +122,7 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff4444; font-weight:bold; padding-right:16px;">${esc(data.text)}</span>
-            <button onclick="event.stopPropagation(); AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button onclick="AILogger.dismiss(event)" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
           <br>
           <div style="font-size:12px; line-height:1.6;">
@@ -135,7 +139,7 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff8fb8; font-style:italic; padding-right:16px;">"${esc(data.text)}"</span>
-            <button onclick="event.stopPropagation(); AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button onclick="AILogger.dismiss(event)" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
         `;
         if (window.Juice) Juice.playPetSound();
