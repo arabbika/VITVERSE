@@ -95,17 +95,22 @@ const AILogger = (() => {
       });
 
       let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error('Something went wrong. Please try again.');
-      }
+      try { data = await response.json(); } 
+      catch { throw new Error('Something went wrong. Please try again.'); }
 
       if (!response.ok || data.error) throw new Error(data.error || 'Failed.');
 
       input.value = ''; // Clear only on success
 
-      // --- CRISIS HANDLING (Pinned, No XP) ---
+      // --- POSTHOG ANALYTICS ---
+      if (window.posthog) {
+        if (!localStorage.getItem('vitverse_first_dump')) {
+          window.posthog.capture('first_dump');
+          localStorage.setItem('vitverse_first_dump', 'true');
+        }
+        if (data.type === 'plan') window.posthog.capture('plan_generated');
+      }
+
       if (data.type === 'crisis') {
         bubble.classList.add('is-pinned');
         bubble.innerHTML = `
@@ -120,10 +125,8 @@ const AILogger = (() => {
           <br>
           <div style="font-size:11px; color:var(--text-muted); font-style:italic;">${esc(data.disclaimer)}</div>
         `;
-        return; // EXIT EARLY: Do not award XP for a crisis
+        return; 
       } 
-      
-      // --- EMPATHY HANDLING (Pinned temporarily) ---
       else if (data.type === 'empathy') {
         triggerAbsorption();
         bubble.classList.add('is-pinned');
@@ -135,15 +138,12 @@ const AILogger = (() => {
         `;
         if (window.Juice) Juice.playPetSound();
       } 
-      
-      // --- PLAN HANDLING ---
       else if (data.type === 'plan') {
         bubble.innerHTML = formatPlanResponse(data);
         bubble.classList.add('is-expanded');
         if (window.Juice) Juice.playPetSound();
       }
 
-      // Award XP safely
       if (window.Companion) {
         Companion.emit({ id: crypto.randomUUID(), type: 'REFLECTION_WRITTEN' });
       }
