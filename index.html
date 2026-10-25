@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
-    <!-- PostHog Analytics -->
+    <!-- PostHog Analytics (Your actual key is now here) -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
         posthog.init('phc_CC5ECZG6RiCbfpFKYXBXgsRpe6BbGBmpKxCDvSWNJgNy', {api_host: 'https://app.posthog.com'});
@@ -98,6 +98,7 @@
                 </div>
             </div>
 
+            <!-- HUD -->
             <div class="hud-container">
                 <div class="hud-top">
                     <div class="level-text">LEVEL <span id="hud-level">1</span></div>
@@ -157,114 +158,49 @@
             if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
-        // --- RENDER FUNCTION ---
-        function updateDashboard(view) {
-            if (!view) return;
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.posthog) window.posthog.capture('first_open');
+
+            // 1. Mount UI
+            CompanionUI.mount(document.getElementById('companion'));
             
+            // 2. Listen for real-time updates
+            window.addEventListener('companion:update', (e) => {
+                const state = Companion.get();
+                const levelEl = document.getElementById('hud-level');
+                const xpTextEl = document.getElementById('xp-text');
+                const xpBarEl = document.getElementById('xp-bar-fill');
+
+                if (levelEl) levelEl.textContent = state.level || 1;
+                if (xpTextEl) xpTextEl.textContent = `${state.xp || 0} / ${(state.level || 1) * 1000} XP`;
+                if (xpBarEl) xpBarEl.style.width = `${((state.xp || 0) / ((state.level || 1) * 1000)) * 100}%`;
+            });
+
+            // 3. Fallback Interval: Updates UI every 1 second based on raw data
+            setInterval(() => {
+                const state = Companion.get();
+                const levelEl = document.getElementById('hud-level');
+                const xpTextEl = document.getElementById('xp-text');
+                const xpBarEl = document.getElementById('xp-bar-fill');
+                
+                if (levelEl) levelEl.textContent = state.level || 1;
+                if (xpTextEl) xpTextEl.textContent = `${state.xp || 0} / ${(state.level || 1) * 1000} XP`;
+                if (xpBarEl) xpBarEl.style.width = `${((state.xp || 0) / ((state.level || 1) * 1000)) * 100}%`;
+            }, 1000);
+
+            if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
+            checkTutorial();
+            
+            // 4. Safely Init Cloud Sync
             try {
-                if (window.Juice) Juice.checkLevelUp(view);
+                if (window.CloudSync) CloudSync.init();
             } catch (e) {
-                console.warn("Juice error:", e);
+                console.warn("CloudSync init skipped:", e.message);
             }
+        });
 
-            const level = view.level || 1;
-            const xp = view.xp || 0;
-            const xpNeeded = view.xpNeeded || 1000;
-
-            document.getElementById('hud-level').textContent = level;
-            const progress = (xp / xpNeeded) * 100;
-            document.getElementById('xp-bar-fill').style.width = `${progress}%`;
-            document.getElementById('xp-text').textContent = `${xp} / ${xpNeeded} XP`;
-
-            const bubble = document.getElementById('companion-memory');
-            if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
-                if (view.quest) {
-                    bubble.innerHTML = `
-                        <div style="cursor:pointer;" onclick="gotoQuest()">
-                            <span>${esc(view.quest.text)}</span>
-                            <span class="quest-action">👉 ${esc(view.quest.action)}</span>
-                        </div>
-                    `;
-                    window.currentQuestLink = view.quest.link;
-                }
-            }
-
-            const sanctuary = document.getElementById('sanctuary');
-            if (view.dominantStat) sanctuary.setAttribute('data-dominant', view.dominantStat);
-
-            const zenRock = document.getElementById('zen-rock');
-            const lockMsg = document.getElementById('zen-lock-msg');
-            const vitality = ((view.vars?.mood || 0) + (view.vars?.rest || 0)) / 2;
-            
-            if (vitality < 20) {
-                lockMsg.style.display = 'block';
-                zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; 
-                zenRock.style.animation = 'float-rock 2s infinite ease-in-out';
-            } else {
-                lockMsg.style.display = 'none';
-                zenRock.style.filter = 'drop-shadow(0 0 15px var(--accent))';
-                zenRock.style.animation = 'float-rock 4s infinite ease-in-out';
-            }
-        }
-
-        // --- SHARE CARD LOGIC ---
-        async function shareProgress() {
-            if (window.posthog) window.posthog.capture('share_click');
-            
-            const view = Companion.view();
-            const src = document.getElementById('companion');
-            const svg = src.cloneNode(true);
-            const a = src.querySelectorAll('*');
-            const b = svg.querySelectorAll('*');
-            
-            a.forEach((el, i) => { 
-                const c = getComputedStyle(el);
-                ['display','opacity','visibility'].forEach(p => b[i].style[p] = c[p]);
-                if (el.tagName === 'stop') b[i].setAttribute('stop-color', c.stopColor); 
-            });
-
-            const img = new Image();
-            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
-            await img.decode();
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 1080; canvas.height = 1920;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = '#0f111a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#1e2235'; ctx.beginPath(); ctx.arc(540, 960, 800, 0, Math.PI * 2); ctx.fill();
-
-            ctx.drawImage(img, 240, 600, 600, 600);
-
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#00e5ff'; ctx.font = 'bold 80px Inter, sans-serif'; ctx.fillText('VITVERSE', 540, 200);
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillText(`LEVEL ${view.level || 1}`, 540, 300);
-            
-            ctx.fillStyle = '#8b9bb4'; ctx.font = '40px monospace';
-            ctx.fillText(`Day Streak: ${Math.floor((view.xp || 0) / 100) + 1} 🔥`, 540, 1400);
-
-            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '30px Inter, sans-serif'; ctx.fillText('vitverse-mauve.vercel.app/?ref=share', 540, 1800);
-
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], 'vitverse-sanctuary.png', { type: 'image/png' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({ 
-                            files: [file], 
-                            title: 'My Vitverse Sanctuary', 
-                            text: 'Check out my inner sanctuary at vitverse-mauve.vercel.app' 
-                        });
-                    } catch (err) {
-                        if (err.name !== 'AbortError') console.error('Share failed:', err);
-                    }
-                } else {
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vitverse-sanctuary.png'; a.click();
-                }
-            });
-            if (window.Juice) Juice.playLevelUpSound();
-        }
-
-        // --- TUTORIAL LOGIC ---
+        // --- TUTORIAL LOGIC (Moved outside DOMContentLoaded to ensure availability) ---
         let currentTutorialStep = 1; const totalTutorialSteps = 5;
         function checkTutorial() {
             if (!localStorage.getItem('vitverse_tutorial_seen')) {
@@ -283,34 +219,6 @@
             document.getElementById('tutorial-overlay').classList.remove('active');
             localStorage.setItem('vitverse_tutorial_seen', 'true');
         }
-
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.posthog) window.posthog.capture('first_open');
-
-            // 1. Mount UI
-            CompanionUI.mount(document.getElementById('companion'));
-            
-            // 2. Initial Render
-            const initialView = Companion.view();
-            console.log("[Index] Initial View Loaded:", initialView);
-            updateDashboard(initialView);
-
-            // 3. Listen for real-time updates
-            window.addEventListener('companion:update', (e) => {
-                console.log("[Index] State updated! Refreshing UI...", e.detail);
-                updateDashboard(e.detail);
-            });
-
-            // 4. Fallback Polling (Every 3 seconds to guarantee UI matches data)
-            setInterval(() => {
-                updateDashboard(Companion.view());
-            }, 3000);
-
-            if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
-            checkTutorial();
-            if (window.CloudSync) CloudSync.init();
-        });
     </script>
 </body>
 </html>
