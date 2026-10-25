@@ -11,6 +11,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
+    <!-- PostHog Analytics -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
         posthog.init('phc_CC5ECZG6RiCbfpFKYXBXgsRpe6BbGBmpKxCDvSWNJgNy', {api_host: 'https://app.posthog.com'});
@@ -32,12 +33,7 @@
     </script>
 </head>
 <body>
-    <!-- DEBUG BANNER: PROVES IF YOU ARE RUNNING THE NEW CODE -->
-    <div id="debug-banner" style="position:fixed; top:0; left:0; right:0; background:red; color:white; padding:10px; text-align:center; font-size:16px; font-weight:bold; z-index:99999;">
-        LOADING...
-    </div>
-
-    <div class="wrapper" style="margin-top: 50px;">
+    <div class="wrapper">
         <header>
             <div class="top-buttons">
                 <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
@@ -49,21 +45,27 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
+            <!-- Quest Speech Bubble -->
             <div id="companion-memory" class="companion-memory">
                 <span>Welcome back. What's on your mind?</span>
             </div>
             
+            <!-- THE SANCTUARY -->
             <div class="sanctuary-stage" id="sanctuary">
                 
+                <!-- Entry to Zen Sandbox -->
                 <a href="zen.html" id="zen-rock" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
                 <div id="zen-lock-msg" class="zen-lock-msg" style="display:none;">Companion needs rest. Zen unlocked.</div>
 
+                <!-- Audio Toggle -->
                 <button id="audio-btn" class="audio-toggle-btn" onclick="SanctuaryAudio.toggle(Companion.view().dominantStat)">
                     <i class="fa-solid fa-volume-xmark"></i>
                 </button>
 
+                <!-- Dynamic Aura Ring -->
                 <div class="aura-ring"></div>
                 
+                <!-- The Companion -->
                 <svg class="companion" id="companion" onclick="petCompanion()" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
@@ -94,6 +96,7 @@
                 </svg>
             </div>
 
+            <!-- AI Chat Bar -->
             <div class="ai-chat-wrapper">
                 <div class="ai-chat-container">
                     <input type="text" id="ai-input" class="ai-input" placeholder="Brain dump or vent here..." onkeypress="if(event.key === 'Enter') window.AILogger.processText(this.value)">
@@ -119,6 +122,23 @@
         </main>
     </div>
 
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div class="tutorial-card">
+            <div class="tutorial-orb"></div>
+            <div class="tutorial-step active" data-step="1"><h2>Welcome to your Sanctuary</h2><p>This is your Companion. It mirrors your real-life habits. When you take care of yourself, it glows.</p></div>
+            <div class="tutorial-step" data-step="2"><h2>Conquer Your Quests</h2><p>Use <strong>ChronoZen</strong> to drag tasks onto the calendar. Every task gives your Companion Energy.</p></div>
+            <div class="tutorial-step" data-step="3"><h2>Restore Your Peace</h2><p>When overwhelmed, use <strong>BreatheWell</strong> or <strong>SoulSync</strong>. Ground yourself.</p></div>
+            <div class="tutorial-step" data-step="4"><h2>Your AI Confidant</h2><p>Vent your chaos in the chat. The AI will listen or give you a step-by-step plan.</p></div>
+            <div class="tutorial-step" data-step="5"><h2>Find Your Zen</h2><p>Tap the <strong>Glowing Rock</strong> to enter the Zen Sandbox. It's always there when you need to decompress.</p></div>
+            <div class="tutorial-controls">
+                <button class="skip-btn" onclick="closeTutorial()">Skip</button>
+                <button class="next-btn" id="tutorial-next" onclick="nextTutorialStep()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -127,37 +147,181 @@
     <script src="cloud.js"></script>
     
     <script>
-        console.log("VITVERSE V6.0 LOADED");
+        const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-        function forceUpdateUI() {
+        function navigateToPage(page) { window.location.href = page; }
+        
+        window.currentQuestLink = null;
+
+        function gotoQuest() { 
+            const b = document.getElementById('companion-memory');
+            if (b.classList.contains('is-expanded') || b.classList.contains('is-pinned')) return;
+            if (window.currentQuestLink) window.location.href = window.currentQuestLink; 
+        }
+
+        function petCompanion() {
+            const svg = document.getElementById('companion');
+            svg.style.transform = 'scale(0.85) translateY(-20px)';
+            setTimeout(() => { svg.style.transform = 'scale(1) translateY(0)'; }, 150);
+            if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
+        }
+
+        // --- RENDER FUNCTION ---
+        function updateDashboard(view) {
+            if (!view) return;
+            
             try {
-                if (typeof Companion === 'undefined') return;
-                
-                const s = Companion.get();
-                const levelEl = document.getElementById('hud-level');
-                const xpTextEl = document.getElementById('xp-text');
-                const xpBarEl = document.getElementById('xp-bar-fill');
-                const debugBanner = document.getElementById('debug-banner');
-
-                if (levelEl) levelEl.textContent = s.level || 1;
-                if (xpTextEl) xpTextEl.textContent = `${s.xp || 0} / ${(s.level || 1) * 1000} XP`;
-                if (xpBarEl) xpBarEl.style.width = `${((s.xp || 0) / ((s.level || 1) * 1000)) * 100}%`;
-                
-                if (debugBanner) {
-                    debugBanner.textContent = `ENGINE XP: ${s.xp || 0} | DOM XP: ${xpTextEl ? xpTextEl.textContent : 'NOT FOUND'}`;
-                }
+                if (window.Juice) Juice.checkLevelUp(view);
             } catch (e) {
-                console.error("UI Update Error:", e);
+                console.warn("Juice error:", e);
+            }
+
+            const level = view.level || 1;
+            const xp = view.xp || 0;
+            const xpNeeded = view.xpNeeded || 1000;
+
+            document.getElementById('hud-level').textContent = level;
+            const progress = (xp / xpNeeded) * 100;
+            document.getElementById('xp-bar-fill').style.width = `${progress}%`;
+            document.getElementById('xp-text').textContent = `${xp} / ${xpNeeded} XP`;
+
+            const bubble = document.getElementById('companion-memory');
+            if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
+                if (view.quest) {
+                    bubble.innerHTML = `
+                        <div style="cursor:pointer;" onclick="gotoQuest()">
+                            <span>${esc(view.quest.text)}</span>
+                            <span class="quest-action">👉 ${esc(view.quest.action)}</span>
+                        </div>
+                    `;
+                    window.currentQuestLink = view.quest.link;
+                }
+            }
+
+            const sanctuary = document.getElementById('sanctuary');
+            if (view.dominantStat) sanctuary.setAttribute('data-dominant', view.dominantStat);
+
+            const zenRock = document.getElementById('zen-rock');
+            const lockMsg = document.getElementById('zen-lock-msg');
+            const vitality = ((view.vars?.mood || 0) + (view.vars?.rest || 0)) / 2;
+            
+            if (vitality < 20) {
+                lockMsg.style.display = 'block';
+                zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; 
+                zenRock.style.animation = 'float-rock 2s infinite ease-in-out';
+            } else {
+                lockMsg.style.display = 'none';
+                zenRock.style.filter = 'drop-shadow(0 0 15px var(--accent))';
+                zenRock.style.animation = 'float-rock 4s infinite ease-in-out';
             }
         }
 
-        // Run every 1 second
-        setInterval(forceUpdateUI, 1000);
+        // --- SHARE CARD LOGIC ---
+        async function shareProgress() {
+            if (window.posthog) window.posthog.capture('share_click');
+            
+            const view = Companion.view();
+            const src = document.getElementById('companion');
+            const svg = src.cloneNode(true);
+            const a = src.querySelectorAll('*');
+            const b = svg.querySelectorAll('*');
+            
+            a.forEach((el, i) => { 
+                const c = getComputedStyle(el);
+                ['display','opacity','visibility'].forEach(p => b[i].style[p] = c[p]);
+                if (el.tagName === 'stop') b[i].setAttribute('stop-color', c.stopColor); 
+            });
 
+            const img = new Image();
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+            await img.decode();
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080; canvas.height = 1920;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#0f111a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1e2235'; ctx.beginPath(); ctx.arc(540, 960, 800, 0, Math.PI * 2); ctx.fill();
+
+            ctx.drawImage(img, 240, 600, 600, 600);
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#00e5ff'; ctx.font = 'bold 80px Inter, sans-serif'; ctx.fillText('VITVERSE', 540, 200);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillText(`LEVEL ${view.level || 1}`, 540, 300);
+            
+            ctx.fillStyle = '#8b9bb4'; ctx.font = '40px monospace';
+            ctx.fillText(`Day Streak: ${Math.floor((view.xp || 0) / 100) + 1} 🔥`, 540, 1400);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '30px Inter, sans-serif'; ctx.fillText('vitverse-mauve.vercel.app/?ref=share', 540, 1800);
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'vitverse-sanctuary.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ 
+                            files: [file], 
+                            title: 'My Vitverse Sanctuary', 
+                            text: 'Check out my inner sanctuary at vitverse-mauve.vercel.app' 
+                        });
+                    } catch (err) {
+                        if (err.name !== 'AbortError') console.error('Share failed:', err);
+                    }
+                } else {
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vitverse-sanctuary.png'; a.click();
+                }
+            });
+            if (window.Juice) Juice.playLevelUpSound();
+        }
+
+        // --- TUTORIAL LOGIC ---
+        let currentTutorialStep = 1; const totalTutorialSteps = 5;
+        function checkTutorial() {
+            if (!localStorage.getItem('vitverse_tutorial_seen')) {
+                document.getElementById('tutorial-overlay').classList.add('active');
+            }
+        }
+        function nextTutorialStep() {
+            if (currentTutorialStep < totalTutorialSteps) {
+                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.remove('active');
+                currentTutorialStep++;
+                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.add('active');
+                if (currentTutorialStep === totalTutorialSteps) document.getElementById('tutorial-next').textContent = 'Enter Sanctuary';
+            } else { closeTutorial(); }
+        }
+        function closeTutorial() {
+            document.getElementById('tutorial-overlay').classList.remove('active');
+            localStorage.setItem('vitverse_tutorial_seen', 'true');
+        }
+
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            forceUpdateUI(); 
             if (window.posthog) window.posthog.capture('first_open');
+
+            // 1. Mount UI
             CompanionUI.mount(document.getElementById('companion'));
+            
+            // 2. Initial Render
+            updateDashboard(Companion.view());
+
+            // 3. Listen for real-time updates
+            window.addEventListener('companion:update', (e) => {
+                updateDashboard(e.detail);
+            });
+
+            // 4. Fallback Polling (Ensures UI never gets stuck)
+            setInterval(() => {
+                updateDashboard(Companion.view());
+            }, 3000);
+
+            if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
+            checkTutorial();
+            
+            // 5. Safely Init Cloud Sync
+            try {
+                if (window.CloudSync) CloudSync.init();
+            } catch (e) {
+                console.warn("CloudSync init skipped:", e.message);
+            }
         });
     </script>
 </body>
