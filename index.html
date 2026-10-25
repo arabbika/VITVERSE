@@ -11,7 +11,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
-    <!-- PostHog Analytics (Your actual key is now here) -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
         posthog.init('phc_CC5ECZG6RiCbfpFKYXBXgsRpe6BbGBmpKxCDvSWNJgNy', {api_host: 'https://app.posthog.com'});
@@ -33,7 +32,12 @@
     </script>
 </head>
 <body>
-    <div class="wrapper">
+    <!-- DEBUG BANNER: PROVES IF YOU ARE RUNNING THE NEW CODE -->
+    <div id="debug-banner" style="position:fixed; top:0; left:0; right:0; background:red; color:white; padding:10px; text-align:center; font-size:16px; font-weight:bold; z-index:99999;">
+        LOADING...
+    </div>
+
+    <div class="wrapper" style="margin-top: 50px;">
         <header>
             <div class="top-buttons">
                 <button type="button" class="neumorphic-button" onclick="navigateToPage('breathewell.html')"><i class="fa-solid fa-wind"></i><span>Focus</span></button>
@@ -115,22 +119,6 @@
         </main>
     </div>
 
-    <!-- Tutorial Overlay -->
-    <div id="tutorial-overlay" class="tutorial-overlay">
-        <div class="tutorial-card">
-            <div class="tutorial-orb"></div>
-            <div class="tutorial-step active" data-step="1"><h2>Welcome to your Sanctuary</h2><p>This is your Companion. It mirrors your real-life habits. When you take care of yourself, it glows.</p></div>
-            <div class="tutorial-step" data-step="2"><h2>Conquer Your Quests</h2><p>Use <strong>ChronoZen</strong> to drag tasks onto the calendar. Every task gives your Companion Energy.</p></div>
-            <div class="tutorial-step" data-step="3"><h2>Restore Your Peace</h2><p>When overwhelmed, use <strong>BreatheWell</strong> or <strong>SoulSync</strong>. Ground yourself.</p></div>
-            <div class="tutorial-step" data-step="4"><h2>Your AI Confidant</h2><p>Vent your chaos in the chat. The AI will listen or give you a step-by-step plan.</p></div>
-            <div class="tutorial-step" data-step="5"><h2>Find Your Zen</h2><p>Tap the <strong>Glowing Rock</strong> to enter the Zen Sandbox. It's always there when you need to decompress.</p></div>
-            <div class="tutorial-controls">
-                <button class="skip-btn" onclick="closeTutorial()">Skip</button>
-                <button class="next-btn" id="tutorial-next" onclick="nextTutorialStep()">Continue</button>
-            </div>
-        </div>
-    </div>
-
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -139,86 +127,38 @@
     <script src="cloud.js"></script>
     
     <script>
-        const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        console.log("VITVERSE V6.0 LOADED");
 
-        function navigateToPage(page) { window.location.href = page; }
-        
-        window.currentQuestLink = null;
-
-        function gotoQuest() { 
-            const b = document.getElementById('companion-memory');
-            if (b.classList.contains('is-expanded') || b.classList.contains('is-pinned')) return;
-            if (window.currentQuestLink) window.location.href = window.currentQuestLink; 
-        }
-
-        function petCompanion() {
-            const svg = document.getElementById('companion');
-            svg.style.transform = 'scale(0.85) translateY(-20px)';
-            setTimeout(() => { svg.style.transform = 'scale(1) translateY(0)'; }, 150);
-            if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
-        }
-
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.posthog) window.posthog.capture('first_open');
-
-            // 1. Mount UI
-            CompanionUI.mount(document.getElementById('companion'));
-            
-            // 2. Listen for real-time updates
-            window.addEventListener('companion:update', (e) => {
-                const state = Companion.get();
-                const levelEl = document.getElementById('hud-level');
-                const xpTextEl = document.getElementById('xp-text');
-                const xpBarEl = document.getElementById('xp-bar-fill');
-
-                if (levelEl) levelEl.textContent = state.level || 1;
-                if (xpTextEl) xpTextEl.textContent = `${state.xp || 0} / ${(state.level || 1) * 1000} XP`;
-                if (xpBarEl) xpBarEl.style.width = `${((state.xp || 0) / ((state.level || 1) * 1000)) * 100}%`;
-            });
-
-            // 3. Fallback Interval: Updates UI every 1 second based on raw data
-            setInterval(() => {
-                const state = Companion.get();
-                const levelEl = document.getElementById('hud-level');
-                const xpTextEl = document.getElementById('xp-text');
-                const xpBarEl = document.getElementById('xp-bar-fill');
-                
-                if (levelEl) levelEl.textContent = state.level || 1;
-                if (xpTextEl) xpTextEl.textContent = `${state.xp || 0} / ${(state.level || 1) * 1000} XP`;
-                if (xpBarEl) xpBarEl.style.width = `${((state.xp || 0) / ((state.level || 1) * 1000)) * 100}%`;
-            }, 1000);
-
-            if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
-            checkTutorial();
-            
-            // 4. Safely Init Cloud Sync
+        function forceUpdateUI() {
             try {
-                if (window.CloudSync) CloudSync.init();
-            } catch (e) {
-                console.warn("CloudSync init skipped:", e.message);
-            }
-        });
+                if (typeof Companion === 'undefined') return;
+                
+                const s = Companion.get();
+                const levelEl = document.getElementById('hud-level');
+                const xpTextEl = document.getElementById('xp-text');
+                const xpBarEl = document.getElementById('xp-bar-fill');
+                const debugBanner = document.getElementById('debug-banner');
 
-        // --- TUTORIAL LOGIC (Moved outside DOMContentLoaded to ensure availability) ---
-        let currentTutorialStep = 1; const totalTutorialSteps = 5;
-        function checkTutorial() {
-            if (!localStorage.getItem('vitverse_tutorial_seen')) {
-                document.getElementById('tutorial-overlay').classList.add('active');
+                if (levelEl) levelEl.textContent = s.level || 1;
+                if (xpTextEl) xpTextEl.textContent = `${s.xp || 0} / ${(s.level || 1) * 1000} XP`;
+                if (xpBarEl) xpBarEl.style.width = `${((s.xp || 0) / ((s.level || 1) * 1000)) * 100}%`;
+                
+                if (debugBanner) {
+                    debugBanner.textContent = `ENGINE XP: ${s.xp || 0} | DOM XP: ${xpTextEl ? xpTextEl.textContent : 'NOT FOUND'}`;
+                }
+            } catch (e) {
+                console.error("UI Update Error:", e);
             }
         }
-        function nextTutorialStep() {
-            if (currentTutorialStep < totalTutorialSteps) {
-                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.remove('active');
-                currentTutorialStep++;
-                document.querySelector(`.tutorial-step[data-step="${currentTutorialStep}"]`).classList.add('active');
-                if (currentTutorialStep === totalTutorialSteps) document.getElementById('tutorial-next').textContent = 'Enter Sanctuary';
-            } else { closeTutorial(); }
-        }
-        function closeTutorial() {
-            document.getElementById('tutorial-overlay').classList.remove('active');
-            localStorage.setItem('vitverse_tutorial_seen', 'true');
-        }
+
+        // Run every 1 second
+        setInterval(forceUpdateUI, 1000);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            forceUpdateUI(); 
+            if (window.posthog) window.posthog.capture('first_open');
+            CompanionUI.mount(document.getElementById('companion'));
+        });
     </script>
 </body>
 </html>
