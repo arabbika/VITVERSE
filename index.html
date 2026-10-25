@@ -11,6 +11,12 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('YOUR_POSTHOG_API_KEY_HERE', {api_host: 'https://app.posthog.com'});
+    </script>
+
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').then((registration) => {
@@ -45,7 +51,6 @@
             
             <div class="sanctuary-stage" id="sanctuary">
                 
-                <!-- Vitality Gate (Zen Rock) -->
                 <a href="zen.html" id="zen-rock" class="zen-rock" title="Enter Zen Sandbox">🪨</a>
                 <div id="zen-lock-msg" class="zen-lock-msg" style="display:none;">Companion needs rest. Zen unlocked.</div>
 
@@ -83,20 +88,7 @@
                         </g>
                     </g>
                 </svg>
-
-                <!-- Equipped Items -->
-                <div id="eq-crown" class="item-slot slot-crown"></div>
-                <div id="eq-gate" class="item-slot slot-gate"></div>
-                <div id="eq-tea" class="item-slot slot-tea"></div>
-                <div id="eq-lamp" class="item-slot slot-lamp"></div>
-                <div id="eq-cat" class="item-slot slot-cat"></div>
-                <div id="eq-plant" class="item-slot slot-plant"></div>
-                <div id="eq-crystal" class="item-slot slot-crystal"></div>
-                <div id="eq-rug" class="item-slot slot-rug"></div>
-                <div id="eq-scarf" class="item-slot slot-scarf"></div>
             </div>
-
-            <div class="inventory-dock" id="inventory-dock"></div>
 
             <div class="ai-chat-wrapper">
                 <div class="ai-chat-container">
@@ -146,7 +138,6 @@
     <script src="cloud.js"></script>
     
     <script>
-        // Escape HTML for user-generated content (like quests)
         const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         function navigateToPage(page) { window.location.href = page; }
@@ -165,20 +156,6 @@
             if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
-        function handleSlotClick(item) {
-            const view = Companion.view();
-            const isWearable = ['crown', 'scarf'].includes(item);
-            if (isWearable) {
-                const isEquipped = view.equipped.wearable === item;
-                Companion.emit({ type: 'EQUIP_WEARABLE', payload: { item: isEquipped ? null : item } });
-            } else {
-                const isEquipped = view.equipped.decor.includes(item);
-                Companion.emit({ type: 'TOGGLE_DECOR', payload: { item: item } });
-            }
-        }
-
-        const itemIcons = { crown: '👑', scarf: '🧣', plant: '🪴', lamp: '💡', rug: '🧶', gate: '⛩️', crystal: '💎', cat: '🐈', tea: '🍵' };
-
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
@@ -188,7 +165,6 @@
             document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
 
             const bubble = document.getElementById('companion-memory');
-            // CRITICAL FIX: Do not overwrite if pinned (crisis/empathy) or expanded (plan)
             if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
                 if (view.quest) {
                     bubble.innerHTML = `<span>${esc(view.quest.text)}</span><span class="quest-action">👉 ${esc(view.quest.action)}</span>`;
@@ -199,55 +175,31 @@
             const sanctuary = document.getElementById('sanctuary');
             sanctuary.setAttribute('data-dominant', view.dominantStat);
 
-            // VITALITY GATE (Reversed Logic: Low vitality = Encourage Zen)
             const zenRock = document.getElementById('zen-rock');
             const lockMsg = document.getElementById('zen-lock-msg');
             const vitality = (view.vars.mood + view.vars.rest) / 2;
             
             if (vitality < 20) {
-                lockMsg.style.display = 'block'; // Show message that it's unlocked/encouraged
-                zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; // Glow green
+                lockMsg.style.display = 'block';
+                zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; 
                 zenRock.style.animation = 'float-rock 2s infinite ease-in-out';
             } else {
                 lockMsg.style.display = 'none';
                 zenRock.style.filter = 'drop-shadow(0 0 15px var(--accent))';
                 zenRock.style.animation = 'float-rock 4s infinite ease-in-out';
             }
-
-            // Inventory Dock
-            const allItems = ['crown', 'scarf', 'plant', 'lamp', 'rug', 'gate', 'crystal', 'cat', 'tea'];
-            const dock = document.getElementById('inventory-dock');
-            dock.innerHTML = '';
-
-            allItems.forEach(item => {
-                const isWearable = ['crown', 'scarf'].includes(item);
-                const isUnlocked = isWearable ? view.inventory.wearables.includes(item) : view.inventory.decor.includes(item);
-                const isEquipped = isWearable ? view.equipped.wearable === item : view.equipped.decor.includes(item);
-                
-                const eqEl = document.getElementById(`eq-${item}`);
-                if (eqEl) {
-                    eqEl.innerHTML = `<img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none; font-size:28px;">${itemIcons[item]}</span>`;
-                    if (isEquipped) eqEl.classList.add('visible');
-                    else eqEl.classList.remove('visible');
-                }
-
-                const dockItem = document.createElement('div');
-                dockItem.className = `dock-item ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'active' : ''}`;
-                dockItem.innerHTML = `<img src="assets/${item}.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span style="display:none; font-size:20px;">${itemIcons[item]}</span>`;
-                if (isUnlocked) dockItem.onclick = () => handleSlotClick(item);
-                dock.appendChild(dockItem);
-            });
         }
 
         // --- SHARE CARD LOGIC ---
         async function shareProgress() {
+            if (window.posthog) window.posthog.capture('share_click');
+            
             const view = Companion.view();
             const src = document.getElementById('companion');
             const svg = src.cloneNode(true);
             const a = src.querySelectorAll('*');
             const b = svg.querySelectorAll('*');
             
-            // 1. Copy computed styles (fixes mouths overlapping and resolves CSS vars)
             a.forEach((el, i) => { 
                 const c = getComputedStyle(el);
                 ['display','opacity','visibility'].forEach(p => b[i].style[p] = c[p]);
@@ -265,34 +217,14 @@
             ctx.fillStyle = '#0f111a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#1e2235'; ctx.beginPath(); ctx.arc(540, 960, 800, 0, Math.PI * 2); ctx.fill();
 
-            // 2. Draw Blob
             ctx.drawImage(img, 240, 600, 600, 600);
 
-            // 3. Draw Equipped Items
-            for (const item of ['crown', 'scarf', 'cat', 'plant', 'rug']) {
-                const isEquipped = view.equipped.wearable === item || view.equipped.decor.includes(item);
-                if (isEquipped) {
-                    const itemImg = new Image();
-                    itemImg.src = `assets/${item}.png`;
-                    try {
-                        await itemImg.decode();
-                        // Approximate positions to match the CSS
-                        if (item === 'crown') ctx.drawImage(itemImg, 480, 600, 120, 120);
-                        if (item === 'scarf') ctx.drawImage(itemImg, 420, 980, 240, 100);
-                        if (item === 'cat') ctx.drawImage(itemImg, 700, 1050, 150, 150);
-                        if (item === 'plant') ctx.drawImage(itemImg, 200, 1050, 150, 150);
-                        if (item === 'rug') ctx.drawImage(itemImg, 290, 1150, 500, 200);
-                    } catch (e) {}
-                }
-            }
-
-            // 4. Draw Text
             ctx.textAlign = 'center';
             ctx.fillStyle = '#00e5ff'; ctx.font = 'bold 80px Inter, sans-serif'; ctx.fillText('VITVERSE', 540, 200);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillText(`LEVEL ${view.level}`, 540, 300);
             
             ctx.fillStyle = '#8b9bb4'; ctx.font = '40px monospace';
-            ctx.fillText(`Day Streak: ${Math.floor(view.xp / 100) + 1} 🔥`, 540, 1400); // Changed from raw stats to a streak
+            ctx.fillText(`Day Streak: ${Math.floor(view.xp / 100) + 1} 🔥`, 540, 1400);
 
             ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '30px Inter, sans-serif'; ctx.fillText('vitverse-mauve.vercel.app/?ref=share', 540, 1800);
 
@@ -336,6 +268,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // PostHog Initial Open Tracking
+            if (window.posthog) {
+                window.posthog.capture('first_open');
+            }
+
             CompanionUI.mount(document.getElementById('companion'));
             updateDashboard(Companion.view());
             window.addEventListener('companion:update', (e) => updateDashboard(e.detail));
