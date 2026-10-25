@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vitverse-v2'; // You can bump this if needed, but the logic below handles it
+const CACHE_NAME = 'vitverse-v5'; // You can bump this if needed, but the logic below handles it
 const ASSETS = [
   './',
   './index.html',
