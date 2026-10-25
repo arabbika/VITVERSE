@@ -158,9 +158,15 @@
         }
 
         function updateDashboard(view) {
-            if (window.Juice) Juice.checkLevelUp(view);
+            if (!view) return;
+            
+            // Wrap in try/catch to ensure UI updates even if Juice fails
+            try {
+                if (window.Juice) Juice.checkLevelUp(view);
+            } catch (e) {
+                console.warn("Juice checkLevelUp failed:", e);
+            }
 
-            // FIX: Fallbacks in case the view is missing data
             const level = view.level || 1;
             const xp = view.xp || 0;
             const xpNeeded = view.xpNeeded || 1000;
@@ -283,7 +289,12 @@
 
             CompanionUI.mount(document.getElementById('companion'));
             updateDashboard(Companion.view());
-            window.addEventListener('companion:update', (e) => updateDashboard(e.detail));
+            
+            window.addEventListener('companion:update', (e) => {
+                console.log("[Index] Received companion:update event");
+                updateDashboard(e.detail);
+            });
+            
             if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
             checkTutorial();
             if (window.CloudSync) CloudSync.init();
