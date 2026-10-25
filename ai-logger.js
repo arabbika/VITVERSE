@@ -67,20 +67,26 @@ const AILogger = (() => {
 
     html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic)}</div></div>`;
     
-    // Pass the event directly
-    html += `<button class="dismiss-plan-btn" onclick="AILogger.dismiss(event)"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
+    // Use an ID instead of inline onclick
+    html += `<button class="dismiss-plan-btn" id="dismiss-plan-btn"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
     return html;
   }
 
-  // Handle the event safely
-  function dismiss(e) {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  function dismiss() {
     const bubble = document.getElementById('companion-memory');
     bubble.classList.remove('is-expanded', 'is-pinned');
-    if (window.Companion) window.dispatchEvent(new CustomEvent('companion:update', { detail: Companion.view() }));
+    
+    // Manually restore the quest text so we don't rely on the event system
+    const view = Companion.view();
+    if (view.quest) {
+      bubble.innerHTML = `
+          <div style="cursor:pointer;" onclick="gotoQuest()">
+              <span>${esc(view.quest.text)}</span>
+              <span class="quest-action">👉 ${esc(view.quest.action)}</span>
+          </div>
+      `;
+      window.currentQuestLink = view.quest.link;
+    }
   }
 
   async function processText(text) {
@@ -122,7 +128,7 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff4444; font-weight:bold; padding-right:16px;">${esc(data.text)}</span>
-            <button onclick="AILogger.dismiss(event)" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button id="close-crisis-btn" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
           <br>
           <div style="font-size:12px; line-height:1.6;">
@@ -131,6 +137,10 @@ const AILogger = (() => {
           <br>
           <div style="font-size:11px; color:var(--text-muted); font-style:italic;">${esc(data.disclaimer)}</div>
         `;
+        // Attach listener
+        document.getElementById('close-crisis-btn').addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation(); dismiss();
+        });
         return; 
       } 
       else if (data.type === 'empathy') {
@@ -139,14 +149,22 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff8fb8; font-style:italic; padding-right:16px;">"${esc(data.text)}"</span>
-            <button onclick="AILogger.dismiss(event)" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button id="close-empathy-btn" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
         `;
+        // Attach listener
+        document.getElementById('close-empathy-btn').addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation(); dismiss();
+        });
         if (window.Juice) Juice.playPetSound();
       } 
       else if (data.type === 'plan') {
         bubble.innerHTML = formatPlanResponse(data);
         bubble.classList.add('is-expanded');
+        // Attach listener
+        document.getElementById('dismiss-plan-btn').addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation(); dismiss();
+        });
         if (window.Juice) Juice.playPetSound();
       }
 
