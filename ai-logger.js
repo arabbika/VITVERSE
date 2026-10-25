@@ -67,8 +67,8 @@ const AILogger = (() => {
 
     html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic)}</div></div>`;
     
-    // No need for stopPropagation since the parent bubble no longer has an onclick listener
-    html += `<button class="dismiss-plan-btn" onclick="AILogger.dismiss()"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
+    // FIXED: Added event.stopPropagation() to prevent redirecting
+    html += `<button class="dismiss-plan-btn" onclick="event.stopPropagation(); AILogger.dismiss()"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
     return html;
   }
 
@@ -118,7 +118,7 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff4444; font-weight:bold; padding-right:16px;">${esc(data.text)}</span>
-            <button onclick="AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button onclick="event.stopPropagation(); AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
           <br>
           <div style="font-size:12px; line-height:1.6;">
@@ -135,7 +135,7 @@ const AILogger = (() => {
         bubble.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <span style="color:#ff8fb8; font-style:italic; padding-right:16px;">"${esc(data.text)}"</span>
-            <button onclick="AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+            <button onclick="event.stopPropagation(); AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
         `;
         if (window.Juice) Juice.playPetSound();
