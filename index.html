@@ -45,7 +45,7 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
-            <!-- CRITICAL FIX: Removed onclick from this parent div -->
+            <!-- CRITICAL FIX: No onclick on this parent div -->
             <div id="companion-memory" class="companion-memory">
                 <span>Welcome back. What's on your mind?</span>
             </div>
@@ -142,12 +142,14 @@
         const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         function navigateToPage(page) { window.location.href = page; }
-        let currentQuestLink = null;
+        
+        // Use window scope to ensure it's accessible from ai-logger.js
+        window.currentQuestLink = null;
 
         function gotoQuest() { 
             const b = document.getElementById('companion-memory');
             if (b.classList.contains('is-expanded') || b.classList.contains('is-pinned')) return;
-            if (currentQuestLink) window.location.href = currentQuestLink; 
+            if (window.currentQuestLink) window.location.href = window.currentQuestLink; 
         }
 
         function petCompanion() {
@@ -168,14 +170,13 @@
             const bubble = document.getElementById('companion-memory');
             if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
                 if (view.quest) {
-                    // CRITICAL FIX: The onclick is now only on the inner text, not the whole bubble
                     bubble.innerHTML = `
                         <div style="cursor:pointer;" onclick="gotoQuest()">
                             <span>${esc(view.quest.text)}</span>
                             <span class="quest-action">👉 ${esc(view.quest.action)}</span>
                         </div>
                     `;
-                    currentQuestLink = view.quest.link;
+                    window.currentQuestLink = view.quest.link;
                 }
             }
 
