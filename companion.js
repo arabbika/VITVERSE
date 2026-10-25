@@ -1,9 +1,8 @@
 /**
- * Vitverse Companion — Real-Life RPG Engine (v4.1)
- * Bulletproofed: Handles missing/corrupt data gracefully.
+ * Vitverse Companion — Real-Life RPG Engine (v4.2)
  */
 const Companion = (() => {
-  const KEY = 'vitverse.companion.v4'; // UPGRADED TO V4 TO CLEAR OLD DATA
+  const KEY = 'vitverse.companion.v4'; 
 
   const CFG = {
     version: 4,
@@ -49,29 +48,26 @@ const Companion = (() => {
   };
 
   const RULES = {
-    BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({ 
-      calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5, xp: 50 }) },
-    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ 
-      energy: 5, mood: 2, xp: 100 }) },
+    BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({ calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5, xp: 50 }) },
+    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ energy: 5, mood: 2, xp: 100 }) },
     SLEEP_LOGGED:        { m: 'sleep',       d: p => {
-      const h = p.hours ?? 7; 
-      const q = clamp(p.quality ?? 3, 1, 5);
+      const h = p.hours ?? 7; const q = clamp(p.quality ?? 3, 1, 5);
       const band = (h >= 7 && h <= 9) ? 20 : (h >= 6 && h <= 10) ? 12 : 5;
       return { rest: band * (0.8 + 0.1 * (q - 1)), xp: 80 };
     } },
-    MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({ 
-      mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood), xp: 20 }) },
-    REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ 
-      mood: 3, xp: 50 }) },
-    EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ 
-      energy: 8, mood: 2, xp: 75 }) },
-    ZEN_SESSION:         { m: 'zen',         d: () => ({ 
-      calm: 10, xp: 50 }) }, 
+    MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({ mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood), xp: 20 }) },
+    REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ mood: 3, xp: 50 }) },
+    EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ energy: 8, mood: 2, xp: 75 }) },
+    ZEN_SESSION:         { m: 'zen',         d: () => ({ calm: 10, xp: 50 }) }, 
   };
 
   function apply(s, event, now = Date.now()) {
+    console.log(`[Companion] Emitting: ${event.type}`, event);
     const rule = RULES[event?.type];
-    if (!rule) throw new Error(`unknown event: ${event?.type}`);
+    if (!rule) {
+      console.error(`[Companion] Unknown event: ${event?.type}`);
+      return s;
+    }
     if (event.id && s.seen?.includes(event.id)) return s;
 
     const vars = decayed(s, now);
@@ -93,7 +89,6 @@ const Companion = (() => {
       vars[k] = clamp(vars[k] + delta);
     }
 
-    // FIX: Fallbacks for missing xp/level
     let newXp = (s.xp ?? 0) + xpGain;
     let newLevel = s.level ?? 1;
     let xpNeeded = newLevel * 1000;
@@ -103,6 +98,8 @@ const Companion = (() => {
       newLevel++; 
       xpNeeded = newLevel * 1000; 
     }
+
+    console.log(`[Companion] New XP: ${newXp}, Level: ${newLevel}`);
 
     return {
       ...s, vars, xp: newXp, level: newLevel,
