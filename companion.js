@@ -1,161 +1,195 @@
-/* ============================================================
-   VITVERSE COMPANION STYLESHEET
-   ============================================================ */
+/**
+ * Vitverse Companion — Real-Life RPG Engine (v4.0)
+ * Simplified: Removed inventory/loot to focus on core stats and AI.
+ */
+const Companion = (() => {
+  const KEY = 'vitverse.companion.v3'; // Kept as v3 to preserve existing user data
 
-/* --- 1. Base Companion --- */
-.companion {
-  width: 50%; height: 50%; display: block; z-index: 10; position: relative;
-  cursor: pointer; filter: drop-shadow(0 0 var(--glow) var(--accent-glow));
-  transition: filter 0.8s ease, transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: blob-idle 4s ease-in-out infinite alternate;
-}
-@keyframes blob-idle { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+  const CFG = {
+    version: 3,
+    floors:    { calm: 30, energy: 35, rest: 40, mood: 45 },
+    halfLifeH: { calm: 36, energy: 48, rest: 72, mood: 96 },
+    dailyCap:  { calm: 25, energy: 20, rest: 25, mood: 15 },
+    maxEvents: 200, 
+    maxSeen: 50, 
+    maxDecayH: 720,
+  };
 
-.companion[data-mood="low"] { --body-inner: #a8b0c4; --body-outer: #78829e; }
-.companion[data-mood="settled"] { --body-inner: #8ec8e8; --body-outer: #5a8fc8; }
-.companion[data-mood="content"] { --body-inner: #7fd8ff; --body-outer: #3a8eef; }
-.companion[data-mood="radiant"] { --body-inner: #a8e8ff; --body-outer: #00e5ff; }
+  const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
+  const dateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-.companion .bob-group { animation: companion-bob var(--bob-duration) ease-in-out infinite; transform-origin: 100px 170px; }
-.companion .breath-group { animation: companion-breathe var(--breath-duration) ease-in-out infinite; transform-origin: 100px 115px; }
-@keyframes companion-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@keyframes companion-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.01); } }
+  const blank = () => ({
+    version: CFG.version,
+    vars: { calm: 60, energy: 60, rest: 60, mood: 60 },
+    xp: 0, 
+    level: 1,
+    lastTick: Date.now(), 
+    day: dateKey(), 
+    gains: { calm: 0, energy: 0, rest: 0, mood: 0 },
+    seen: [], 
+    events: [],
+  });
 
-.companion .eye { transform-box: fill-box; transform-origin: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.companion[data-mood="radiant"] .eye { transform: scaleY(1.1); }
-.companion[data-mood="settled"] .eye { transform: scaleY(0.7); }
-.companion[data-mood="quiet"]   .eye { transform: scaleY(0.5); }
-.companion[data-mood="low"]     .eye { transform: scaleY(0.3) translateY(2px); }
-.companion.is-blinking .eye { transform: scaleY(0.1) !important; transition: transform 0.1s ease; }
+  // --- Lazy Decay ---
+  function decayed(s, now) {
+    const dtH = Math.max(0, Math.min(CFG.maxDecayH, (now - s.lastTick) / 3.6e6));
+    const out = { ...s.vars };
+    const mean = (out.calm + out.energy + out.rest) / 3;
+    
+    for (const k of Object.keys(out)) {
+      // Mood's floor is dynamic based on the other stats
+      const floor = k === 'mood' ? 0.7 * CFG.floors.mood + 0.3 * mean : CFG.floors[k];
+      const lambda = Math.LN2 / CFG.halfLifeH[k];
+      out[k] = floor + (out[k] - floor) * Math.exp(-lambda * dtH);
+    }
+    return out;
+  }
 
-.companion .mouth { display: none; }
-.companion[data-mood="radiant"] .mouth-radiant { display: inline; }
-.companion[data-mood="content"] .mouth-content { display: inline; }
-.companion[data-mood="settled"] .mouth-settled { display: inline; }
-.companion[data-mood="quiet"]   .mouth-quiet   { display: inline; }
-.companion[data-mood="low"]     .mouth-low     { display: inline; }
+  // --- Diminishing Returns ---
+  const dim = (used, cap) => {
+    const r = used / cap;
+    return r < 0.5 ? 1 : r < 0.8 ? 0.6 : r >= 1 ? 0 : 0.3;
+  };
 
-.companion .cheeks { opacity: 0; transition: opacity 0.6s ease; }
-.companion[data-mood="radiant"] .cheeks { opacity: 1; }
+  // --- Event Rules ---
+  const RULES = {
+    BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({ 
+      calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5, xp: 50 }) },
+    
+    TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ 
+      energy: 5, mood: 2, xp: 100 }) },
+    
+    SLEEP_LOGGED:        { m: 'sleep',       d: p => {
+      const h = p.hours ?? 7; 
+      const q = clamp(p.quality ?? 3, 1, 5);
+      const band = (h >= 7 && h <= 9) ? 20 : (h >= 6 && h <= 10) ? 12 : 5;
+      return { rest: band * (0.8 + 0.1 * (q - 1)), xp: 80 };
+    } },
+    
+    MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({ 
+      mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood), xp: 20 }) },
+    
+    REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ 
+      mood: 3, xp: 50 }) },
+    
+    EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ 
+      energy: 8, mood: 2, xp: 75 }) },
+    
+    ZEN_SESSION:         { m: 'zen',         d: () => ({ 
+      calm: 10, xp: 50 }) }, 
+  };
 
-.companion.is-resting .eye { transform: scaleY(0.08) !important; }
-.companion.is-resting .mouth { display: none !important; }
-.companion.is-resting .mouth-settled { display: inline !important; }
-.companion.is-resting { animation-play-state: paused; filter: brightness(0.6) drop-shadow(0 0 2px var(--accent)); }
+  function apply(s, event, now = Date.now()) {
+    const rule = RULES[event?.type];
+    if (!rule) throw new Error(`unknown event: ${event?.type}`);
+    if (event.id && s.seen.includes(event.id)) return s;
 
-/* --- 2. The Sanctuary --- */
-.sanctuary-stage {
-  position: relative; width: 100%; aspect-ratio: 1; max-width: 340px; margin: 0 auto;
-  border-radius: 32px; border: 1px solid var(--border-glass); overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: inset 0 20px 40px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.3);
-  transition: background 1.5s ease; background: linear-gradient(180deg, #1e2235 0%, #0d101a 100%);
-}
-.sanctuary-stage[data-dominant="rest"] { background: linear-gradient(180deg, #1e1a3e 0%, #0d0a1a 100%); }
-.sanctuary-stage[data-dominant="energy"] { background: linear-gradient(180deg, #3e2a1a 0%, #1a100d 100%); }
-.sanctuary-stage[data-dominant="calm"] { background: linear-gradient(180deg, #1a3e3e 0%, #0d1a1a 100%); }
-.sanctuary-stage[data-dominant="mood"] { background: linear-gradient(180deg, #3e1a3e 0%, #1a0d1a 100%); }
+    const vars = decayed(s, now);
+    const raw  = rule.d(event.payload ?? {}, vars);
+    const xpGain = raw.xp ?? 0;
+    delete raw.xp;
 
-.sanctuary-stage::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1); z-index: 1; pointer-events: none;
-}
+    const today = dateKey(new Date(now));
+    const gains = today === s.day ? { ...s.gains } : { calm: 0, energy: 0, rest: 0, mood: 0 };
 
-.aura-ring { position: absolute; width: 80%; height: 80%; border-radius: 50%; z-index: 1; transition: all 1s ease; opacity: 0.4; pointer-events: none; }
-.sanctuary-stage[data-dominant="rest"] .aura-ring { box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3); background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%); animation: cosmic-pulse 8s infinite alternate; }
-.sanctuary-stage[data-dominant="energy"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3); background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%); animation: electric-shake 0.5s infinite; }
-.sanctuary-stage[data-dominant="calm"] .aura-ring { box-shadow: 0 0 80px 10px rgba(0, 200, 255, 0.3); background: radial-gradient(circle, rgba(0,200,255,0.1) 0%, transparent 70%); animation: water-ripple 4s infinite alternate; }
-.sanctuary-stage[data-dominant="mood"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 100, 200, 0.3); background: radial-gradient(circle, rgba(255,100,200,0.1) 0%, transparent 70%); animation: bloom-pulse 4s infinite alternate; }
-@keyframes cosmic-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.1); opacity: 0.6; } }
-@keyframes electric-shake { 0% { transform: translate(0,0); } 25% { transform: translate(2px, -2px); } 50% { transform: translate(-2px, 2px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0,0); } }
-@keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
-@keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
+    for (const [k, d] of Object.entries(raw)) {
+      if (!(k in vars)) continue;
+      let delta = d;
+      if (delta > 0) {
+        const cap = CFG.dailyCap[k];
+        delta = Math.min(delta * dim(gains[k], cap), cap - gains[k]);
+        gains[k] = clamp(gains[k] + delta, 0, cap);
+      }
+      vars[k] = clamp(vars[k] + delta);
+    }
 
-/* --- 3. HUD & SHARE BUTTON --- */
-.hud-container {
-  width: 100%; max-width: 340px; margin: 0 auto;
-  background: var(--bg-surface); border: 1px solid var(--border-glass);
-  border-radius: 20px; padding: 16px; backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  display: flex; flex-direction: column; gap: 8px; z-index: 25; position: relative;
-}
-.hud-top { display: flex; justify-content: space-between; align-items: center; }
-.level-text { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
-.xp-text { font-family: var(--font-ui); font-size: 11px; color: var(--text-muted); font-weight: 600; }
-.xp-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.4); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
-.xp-bar-fill { height: 100%; background: linear-gradient(90deg, #0088cc, var(--accent)); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 10px; box-shadow: 0 0 10px var(--accent-glow); }
+    // Leveling Logic
+    let newXp = s.xp + xpGain;
+    let newLevel = s.level;
+    let xpNeeded = newLevel * 1000;
+    while (newXp >= xpNeeded) { 
+      newXp -= xpNeeded; 
+      newLevel++; 
+      xpNeeded = newLevel * 1000; 
+    }
 
-.share-btn {
-    width: 100%; margin-top: 10px; padding: 10px;
-    background: transparent; border: 1px solid var(--accent);
-    color: var(--accent); border-radius: 12px; font-weight: bold;
-    cursor: pointer; transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.share-btn:hover { background: rgba(0, 229, 255, 0.1); box-shadow: 0 0 15px var(--accent-glow); }
-.share-btn:active { transform: scale(0.96); }
+    return {
+      ...s, vars, xp: newXp, level: newLevel,
+      lastTick: now, day: today, gains,
+      seen:   event.id ? [...s.seen, event.id].slice(-CFG.maxSeen) : s.seen,
+      events: [...s.events, { type: event.type, m: rule.m, ts: now, payload: event.payload }].slice(-CFG.maxEvents),
+    };
+  }
 
-/* --- 4. AI CHAT --- */
-.ai-chat-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; margin: 16px auto; z-index: 25; position: relative; }
-.ai-chat-container { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 24px; padding: 6px 6px 6px 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: border-color 0.3s ease; }
-.ai-chat-container:focus-within { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-.ai-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-family: var(--font-ui); font-size: 14px; outline: none; }
-.ai-input::placeholder { color: var(--text-muted); opacity: 0.7; }
-.ai-mic-btn { background: rgba(255,255,255,0.05); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 16px; cursor: pointer; transition: all 0.2s ease; }
-.ai-mic-btn:hover { background: rgba(255,255,255,0.1); }
-.ai-mic-btn.listening { animation: pulse-mic 1s infinite; }
-@keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+  // --- Quest Generation ---
+  function getQuest(v) {
+    const stats = [
+      { key: 'calm', val: v.calm, text: "The winds of chaos are rising. We must restore Focus.", link: "breathewell.html", action: "Cast Focus" },
+      { key: 'energy', val: v.energy, text: "The village requires action. We must complete a Quest.", link: "chronozen.html", action: "Enter Chronozen" },
+      { key: 'rest', val: v.rest, text: "Our vitality is fading. We must Rest at Camp.", link: "dreamweaver.html", action: "Rest at Camp" },
+      { key: 'mood', val: v.mood, text: "The spirit is heavy. We must commune with SoulSync.", link: "soulsync.html", action: "Commune" }
+    ];
+    stats.sort((a, b) => a.val - b.val);
+    return stats[0];
+  }
 
-.audio-toggle-btn { position: absolute; top: 16px; right: 16px; z-index: 25; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); color: var(--text-muted); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(4px); }
-.audio-toggle-btn.playing { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); animation: pulse-audio 2s infinite; }
-@keyframes pulse-audio { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+  // --- View State for UI ---
+  function view(s, now = Date.now()) {
+    const v = decayed(s, now);
+    const h = new Date(now).getHours();
+    
+    // Determine Aura
+    const auraStats = [ 
+      { name: 'calm', val: v.calm }, 
+      { name: 'energy', val: v.energy }, 
+      { name: 'rest', val: v.rest }, 
+      { name: 'mood', val: v.mood } 
+    ];
+    auraStats.sort((a, b) => b.val - a.val); 
 
-/* --- 5. VITALITY GATE (ZEN ROCK) --- */
-.zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite ease-in-out; text-decoration: none; transition: all 0.3s ease; }
-@keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
-.zen-rock.locked { filter: grayscale(100%) opacity(0.3); animation: none; cursor: not-allowed; transform: scale(0.9); }
-.zen-lock-msg { position: absolute; top: 18%; left: 5%; font-size: 10px; color: #ff4444; font-weight: bold; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; z-index: 25; pointer-events: none; border: 1px solid rgba(255, 68, 68, 0.3); }
+    return {
+      vars: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round(x)])),
+      xp: s.xp, 
+      level: s.level, 
+      xpNeeded: s.level * 1000,
+      dominantStat: auraStats[0].name,
+      moodWord:  v.mood >= 80 ? 'radiant' : v.mood >= 60 ? 'content' : v.mood >= 45 ? 'settled' : v.mood >= 30 ? 'quiet' : 'low',
+      energyBand: v.energy >= 70 ? 'bouncy' : v.energy >= 45 ? 'steady' : 'slow',
+      breathSync: v.calm >= 70 ? 'slow' : v.calm >= 45 ? 'even' : 'shallow',
+      isResting: v.rest < 40 && (h >= 22 || h < 6),
+      quest: getQuest(v),
+    };
+  }
 
-/* --- 6. GAME JUICE & OVERLAYS --- */
-.ambient-particle { position: absolute; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; animation: float-up infinite linear; z-index: 1; filter: blur(1px); }
-@keyframes float-up { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-150px) scale(1.5); opacity: 0; } }
+  // --- Persistence ---
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      return !s || s.version !== CFG.version ? blank() : s;
+    } catch { return blank(); }
+  }
+  
+  const save = s => localStorage.setItem(KEY, JSON.stringify(s));
+  const fire = s => window.dispatchEvent(new CustomEvent('companion:update', { detail: view(s) }));
 
-.level-up-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 17, 26, 0.9); backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; overflow: hidden; }
-.level-up-text { font-family: var(--font-ui); font-size: 14px; font-weight: 800; color: var(--accent); letter-spacing: 4px; text-transform: uppercase; animation: zoom-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-.level-up-number { font-family: var(--font-display); font-size: 100px; font-weight: 900; color: #fff; text-shadow: 0 0 60px var(--accent); animation: zoom-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; line-height: 1; margin: 10px 0 30px 0; }
-.level-up-btn { background: var(--accent); border: none; color: #000; padding: 12px 40px; border-radius: 30px; font-size: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 0 20px var(--accent-glow); }
-.level-up-btn:hover { transform: scale(1.05); }
-@keyframes zoom-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-.confetti { position: absolute; top: -10px; width: 8px; height: 8px; border-radius: 2px; animation: fall 3s linear forwards; }
-@keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  // --- Public API ---
+  return {
+    get: () => load(), 
+    view: (now) => view(load(), now),
+    emit(event) { 
+      const next = apply(load(), event); 
+      save(next); 
+      fire(next); 
+      return view(next); 
+    },
+    reset() { 
+      localStorage.removeItem(KEY); 
+      fire(blank()); 
+    },
+    subscribe(fn) { 
+      window.addEventListener('companion:update', e => fn(e.detail)); 
+    },
+  };
+})();
 
-.absorb-particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ff8fb8; box-shadow: 0 0 10px #ff8fb8; animation: absorb 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; z-index: 5; pointer-events: none; }
-@keyframes absorb { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
-
-.companion-memory.is-expanded { max-width: 100%; padding: 0; background: transparent; border: none; box-shadow: none; backdrop-filter: none; cursor: default; }
-.companion-memory.is-expanded:hover { transform: none; background: transparent; }
-.aura-plan { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; margin: 0 auto; animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-@keyframes slide-up { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-.phase-card { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 16px; padding: 16px; backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); text-align: left; }
-.phase-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-.phase-content { font-size: 14px; line-height: 1.5; color: var(--text-main); }
-.phase-objective { border-left: 4px solid #ffd700; } .phase-objective .phase-title { color: #ffd700; }
-.phase-1 { border-left: 4px solid #ff4444; } .phase-1 .phase-title { color: #ff4444; }
-.phase-2 { border-left: 4px solid #00e5ff; } .phase-2 .phase-title { color: #00e5ff; }
-.phase-3 { border-left: 4px solid #4ade80; } .phase-3 .phase-title { color: #4ade80; }
-.phase-somatic { border-left: 4px solid #a8e8ff; background: rgba(0, 229, 255, 0.05); } .phase-somatic .phase-title { color: #a8e8ff; }
-.dismiss-plan-btn { background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px; font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow); position: relative; z-index: 100; }
-.dismiss-plan-btn:active { transform: scale(0.96); box-shadow: none; }
-
-/* --- PINNED MESSAGES (Crisis & Empathy) --- */
-.companion-memory.is-pinned {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: var(--bg-surface);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  cursor: default;
-}
-.companion-memory.is-pinned:hover {
-  transform: none;
-  background: var(--bg-surface);
-}
+window.Companion = Companion;
