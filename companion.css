@@ -1,7 +1,5 @@
 /* ============================================================
    VITVERSE COMPANION STYLESHEET
-   Includes: Base Blob, Sanctuary, Spatial Inventory, HUD, 
-             AI Chat, Game Plans, Vitality Gate, and Game Juice.
    ============================================================ */
 
 /* --- 1. Base Companion --- */
@@ -13,19 +11,16 @@
 }
 @keyframes blob-idle { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
 
-/* Mood Colors */
 .companion[data-mood="low"] { --body-inner: #a8b0c4; --body-outer: #78829e; }
 .companion[data-mood="settled"] { --body-inner: #8ec8e8; --body-outer: #5a8fc8; }
 .companion[data-mood="content"] { --body-inner: #7fd8ff; --body-outer: #3a8eef; }
 .companion[data-mood="radiant"] { --body-inner: #a8e8ff; --body-outer: #00e5ff; }
 
-/* Motion Layers */
 .companion .bob-group { animation: companion-bob var(--bob-duration) ease-in-out infinite; transform-origin: 100px 170px; }
 .companion .breath-group { animation: companion-breathe var(--breath-duration) ease-in-out infinite; transform-origin: 100px 115px; }
 @keyframes companion-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes companion-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, 1.01); } }
 
-/* Eyes & Mouth */
 .companion .eye { transform-box: fill-box; transform-origin: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .companion[data-mood="radiant"] .eye { transform: scaleY(1.1); }
 .companion[data-mood="settled"] .eye { transform: scaleY(0.7); }
@@ -67,7 +62,6 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.1); z-index: 1; pointer-events: none;
 }
 
-/* Dynamic Aura Ring */
 .aura-ring { position: absolute; width: 80%; height: 80%; border-radius: 50%; z-index: 1; transition: all 1s ease; opacity: 0.4; pointer-events: none; }
 .sanctuary-stage[data-dominant="rest"] .aura-ring { box-shadow: 0 0 100px 20px rgba(100, 100, 255, 0.3); background: radial-gradient(circle, rgba(100,100,255,0.1) 0%, transparent 70%); animation: cosmic-pulse 8s infinite alternate; }
 .sanctuary-stage[data-dominant="energy"] .aura-ring { box-shadow: 0 0 80px 10px rgba(255, 200, 0, 0.3); background: radial-gradient(circle, rgba(255,200,0,0.1) 0%, transparent 70%); animation: electric-shake 0.5s infinite; }
@@ -78,50 +72,7 @@
 @keyframes water-ripple { 0% { transform: scale(0.9); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
 @keyframes bloom-pulse { 0% { transform: scale(1); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.7; } }
 
-/* --- 3. SPATIAL INVENTORY (Equipped Items) --- */
-.item-slot {
-  position: absolute; display: none; align-items: center; justify-content: center;
-  z-index: 15; pointer-events: none; 
-}
-.item-slot.visible { display: flex; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.item-slot img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.4)); }
-@keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-/* Specific Equipped Positions */
-.slot-crown { top: 12%; left: 50%; transform: translateX(-50%); width: 60px; height: 60px; }
-.slot-scarf { top: 52%; left: 50%; transform: translateX(-50%); width: 80px; height: 40px; z-index: 20; }
-.slot-gate { top: 22%; left: 15%; width: 70px; height: 50px; }
-.slot-tea { top: 22%; right: 15%; width: 50px; height: 50px; }
-.slot-lamp { top: 45%; left: 5%; width: 40px; height: 60px; }
-.slot-cat { top: 45%; right: 5%; width: 50px; height: 50px; }
-.slot-plant { bottom: 22%; left: 15%; width: 50px; height: 50px; }
-.slot-crystal { bottom: 22%; right: 15%; width: 40px; height: 40px; }
-.slot-rug { bottom: 5%; left: 50%; transform: translateX(-50%); width: 140px; height: 70px; }
-
-/* --- 4. INVENTORY DOCK --- */
-.inventory-dock {
-  display: flex; gap: 12px; overflow-x: auto; padding: 10px 16px;
-  width: 100%; max-width: 340px; margin: 0 auto;
-  background: var(--bg-surface); border: 1px solid var(--border-glass);
-  border-radius: 20px; backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  scrollbar-width: none; z-index: 25; position: relative;
-}
-.inventory-dock::-webkit-scrollbar { display: none; }
-
-.dock-item {
-  width: 50px; height: 50px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.3); border-radius: 12px;
-  border: 2px solid transparent; cursor: pointer;
-  transition: all 0.2s ease; position: relative;
-}
-.dock-item img { width: 80%; height: 80%; object-fit: contain; }
-.dock-item.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(100%); }
-.dock-item.unlocked:hover { transform: translateY(-4px); background: rgba(255,255,255,0.1); }
-.dock-item.active { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); background: rgba(0, 229, 255, 0.1); }
-
-/* --- 5. HUD & SHARE BUTTON --- */
+/* --- 3. HUD & SHARE BUTTON --- */
 .hud-container {
   width: 100%; max-width: 340px; margin: 0 auto;
   background: var(--bg-surface); border: 1px solid var(--border-glass);
@@ -145,7 +96,7 @@
 .share-btn:hover { background: rgba(0, 229, 255, 0.1); box-shadow: 0 0 15px var(--accent-glow); }
 .share-btn:active { transform: scale(0.96); }
 
-/* --- 6. AI CHAT & MODES --- */
+/* --- 4. AI CHAT --- */
 .ai-chat-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; margin: 16px auto; z-index: 25; position: relative; }
 .ai-chat-container { display: flex; align-items: center; gap: 8px; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 24px; padding: 6px 6px 6px 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: border-color 0.3s ease; }
 .ai-chat-container:focus-within { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
@@ -160,48 +111,13 @@
 .audio-toggle-btn.playing { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); animation: pulse-audio 2s infinite; }
 @keyframes pulse-audio { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-/* --- 7. VITALITY GATE (ZEN ROCK) --- */
-.zen-rock {
-    position: absolute;
-    top: 5%;
-    left: 5%;
-    z-index: 25;
-    font-size: 36px;
-    cursor: pointer;
-    filter: drop-shadow(0 0 15px var(--accent));
-    animation: float-rock 4s infinite ease-in-out;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
+/* --- 5. VITALITY GATE (ZEN ROCK) --- */
+.zen-rock { position: absolute; top: 5%; left: 5%; z-index: 25; font-size: 36px; cursor: pointer; filter: drop-shadow(0 0 15px var(--accent)); animation: float-rock 4s infinite ease-in-out; text-decoration: none; transition: all 0.3s ease; }
+@keyframes float-rock { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
+.zen-rock.locked { filter: grayscale(100%) opacity(0.3); animation: none; cursor: not-allowed; transform: scale(0.9); }
+.zen-lock-msg { position: absolute; top: 18%; left: 5%; font-size: 10px; color: #ff4444; font-weight: bold; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; z-index: 25; pointer-events: none; border: 1px solid rgba(255, 68, 68, 0.3); }
 
-@keyframes float-rock {
-    0%, 100% { transform: translateY(0) rotate(-5deg); }
-    50% { transform: translateY(-10px) rotate(5deg); }
-}
-
-.zen-rock.locked {
-    filter: grayscale(100%) opacity(0.3);
-    animation: none;
-    cursor: not-allowed;
-    transform: scale(0.9);
-}
-
-.zen-lock-msg {
-    position: absolute; 
-    top: 18%; 
-    left: 5%;
-    font-size: 10px; 
-    color: #ff4444; 
-    font-weight: bold;
-    background: rgba(0,0,0,0.6); 
-    padding: 4px 8px; 
-    border-radius: 4px;
-    z-index: 25; 
-    pointer-events: none;
-    border: 1px solid rgba(255, 68, 68, 0.3);
-}
-
-/* --- 8. GAME JUICE & OVERLAYS --- */
+/* --- 6. GAME JUICE & OVERLAYS --- */
 .ambient-particle { position: absolute; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; animation: float-up infinite linear; z-index: 1; filter: blur(1px); }
 @keyframes float-up { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-150px) scale(1.5); opacity: 0; } }
 
@@ -229,27 +145,17 @@
 .phase-2 { border-left: 4px solid #00e5ff; } .phase-2 .phase-title { color: #00e5ff; }
 .phase-3 { border-left: 4px solid #4ade80; } .phase-3 .phase-title { color: #4ade80; }
 .phase-somatic { border-left: 4px solid #a8e8ff; background: rgba(0, 229, 255, 0.05); } .phase-somatic .phase-title { color: #a8e8ff; }
-.dismiss-plan-btn { background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px; font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow); }
+.dismiss-plan-btn { background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 16px; font-family: var(--font-ui); font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 0 20px var(--accent-glow); position: relative; z-index: 100; }
 .dismiss-plan-btn:active { transform: scale(0.96); box-shadow: none; }
 
-
-
-   /* --- PINNED MESSAGES (Crisis & Empathy) --- */
+/* --- PINNED MESSAGES (Crisis & Empathy) --- */
 .companion-memory.is-pinned {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: var(--bg-surface);
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  cursor: default; /* Disable the gotoQuest cursor */
+  cursor: default;
 }
 .companion-memory.is-pinned:hover {
   transform: none;
   background: var(--bg-surface);
 }
-}
-.companion-memory.is-pinned:hover {
-  transform: none;
-  background: var(--bg-surface);
-}
-
-/* --- REMOVE INVENTORY (Overrides) --- */
-.inventory-dock, .item-slot, .dock-item { display: none !important; }
