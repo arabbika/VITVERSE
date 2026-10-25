@@ -4,12 +4,6 @@ import { Redis } from '@upstash/redis';
 
 export const maxDuration = 60;
 
-// Initialize Rate Limiter (8 requests per minute per IP)
-const rl = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(8, '1m'),
-});
-
 const CRISIS_RESPONSE = {
   type: 'crisis',
   text: "I hear how much pain you are in. You don't have to carry this alone. Please reach out to people who can help right now.",
@@ -22,7 +16,6 @@ const CRISIS_RESPONSE = {
   disclaimer: "If you are in immediate danger, please call your local emergency number (e.g., 911, 112, or 999)."
 };
 
-// Sanitizer for AI Output
 const str = (v, max) => typeof v === 'string' ? v.trim().slice(0, max) : '';
 function sanitize(p) {
   if (p?.type === 'crisis') return CRISIS_RESPONSE;
@@ -37,31 +30,39 @@ function sanitize(p) {
   if (p?.type === 'empathy' && str(p.text, 600)) {
     return { type: 'empathy', text: str(p.text, 600) };
   }
-  return null; // Fallback
+  return null; 
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // 1. Rate Limiting
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] ?? 'anon';
-  const { success } = await rl.limit(ip);
-  if (!success) return res.status(429).json({ error: 'Slow down a little. Try again in a minute.' });
+  // --- GRACEFUL RATE LIMITING ---
+  try {
+    const rl = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(8, '1m'),
+    });
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] ?? 'anon';
+    const { success } = await rl.limit(ip);
+    if (!success) return res.status(429).json({ error: 'Slow down a little. Try again in a minute.' });
+  } catch (e) {
+    // If Upstash fails, log it but DO NOT crash. Let the request through.
+    console.warn("Rate limiter skipped (Upstash error):", e.message);
+  }
 
-  // 2. Input Validation
+  // --- INPUT VALIDATION ---
   const brainDump = typeof req.body?.brainDump === 'string' ? req.body.brainDump.trim() : '';
   if (!brainDump || brainDump.length > 2000) {
     return res.status(400).json({ error: 'Please keep your message under 2,000 characters.' });
   }
 
-  // 3. Strict Crisis Detection (Regex Layer 1)
+  // --- CRISIS DETECTION (Regex Layer 1) ---
   const crisisRegex = /\b(suicid\w*|kill(ing)? myself|end(ing)? (my life|it all)|take my own life|want(ed)? to die|don'?t want to (be here|live|wake up)|better off without me|hurt(ing)? myself|self[- ]?harm|cut(ting)? myself)\b/i;
-  
   if (crisisRegex.test(brainDump)) {
     return res.status(200).json(CRISIS_RESPONSE);
   }
 
-  // 4. AI Persona & Prompt
+  // --- AI PERSONA ---
   const systemPrompt = `You are the AI core of Vitverse, a safe space for mental health and focus.
 The user will give you a brain dump. You must decide if they need EMPATHY or a PLAN.
 
@@ -86,7 +87,7 @@ If they need a plan:
       },
       signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
-        model: "grok-4.7", 
+        model: "grok-4.3", // Using the confirmed working model
         max_tokens: 600,
         response_format: { type: "json_object" },
         messages: [
@@ -99,14 +100,13 @@ If they need a plan:
     const rawText = await response.text(); 
     
     if (!response.ok) {
-      console.error("xAI API Error Status:", response.status); // Privacy: Do not log rawText
+      console.error("xAI API Error Status:", response.status);
       return res.status(500).json({ error: 'AI failed to respond. Please try again.' });
     }
 
     const data = JSON.parse(rawText);
     const aiText = data.choices[0].message.content;
     
-    // 5. Parse & Sanitize
     try {
       const cleanJson = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
@@ -116,7 +116,7 @@ If they need a plan:
       return res.status(200).json(safeData);
       
     } catch (e) {
-      console.error("Failed to parse AI JSON. Status code:", response.status); // Privacy: No log of model output
+      console.error("Failed to parse AI JSON. Status code:", response.status);
       return res.status(200).json({ 
         type: 'empathy', 
         text: "I'm here with you. Let's take a deep breath together." 
