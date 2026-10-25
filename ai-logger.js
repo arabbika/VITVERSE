@@ -4,6 +4,9 @@ const AILogger = (() => {
   let isProcessing = false;
 
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  
+  // Fallback for crypto.randomUUID
+  const uuid = () => (window.crypto?.randomUUID?.() ?? (Date.now() + '-' + Math.random().toString(36).slice(2)));
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -66,8 +69,6 @@ const AILogger = (() => {
     }
 
     html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic)}</div></div>`;
-    
-    // Use an ID instead of inline onclick
     html += `<button class="dismiss-plan-btn" id="dismiss-plan-btn"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
     return html;
   }
@@ -76,7 +77,6 @@ const AILogger = (() => {
     const bubble = document.getElementById('companion-memory');
     bubble.classList.remove('is-expanded', 'is-pinned');
     
-    // Manually restore the quest text so we don't rely on the event system
     const view = Companion.view();
     if (view.quest) {
       bubble.innerHTML = `
@@ -137,10 +137,7 @@ const AILogger = (() => {
           <br>
           <div style="font-size:11px; color:var(--text-muted); font-style:italic;">${esc(data.disclaimer)}</div>
         `;
-        // Attach listener
-        document.getElementById('close-crisis-btn').addEventListener('click', (e) => {
-            e.preventDefault(); e.stopPropagation(); dismiss();
-        });
+        document.getElementById('close-crisis-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dismiss(); });
         return; 
       } 
       else if (data.type === 'empathy') {
@@ -152,24 +149,18 @@ const AILogger = (() => {
             <button id="close-empathy-btn" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
           </div>
         `;
-        // Attach listener
-        document.getElementById('close-empathy-btn').addEventListener('click', (e) => {
-            e.preventDefault(); e.stopPropagation(); dismiss();
-        });
+        document.getElementById('close-empathy-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dismiss(); });
         if (window.Juice) Juice.playPetSound();
       } 
       else if (data.type === 'plan') {
         bubble.innerHTML = formatPlanResponse(data);
         bubble.classList.add('is-expanded');
-        // Attach listener
-        document.getElementById('dismiss-plan-btn').addEventListener('click', (e) => {
-            e.preventDefault(); e.stopPropagation(); dismiss();
-        });
+        document.getElementById('dismiss-plan-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); dismiss(); });
         if (window.Juice) Juice.playPetSound();
       }
 
       if (window.Companion) {
-        Companion.emit({ id: crypto.randomUUID(), type: 'REFLECTION_WRITTEN' });
+        Companion.emit({ id: uuid(), type: 'REFLECTION_WRITTEN' });
       }
 
     } catch (err) {
