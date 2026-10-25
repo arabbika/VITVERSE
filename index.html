@@ -45,7 +45,6 @@
 
         <main style="display:flex; flex-direction:column; gap:16px; padding-bottom:40px;">
             
-            <!-- CRITICAL FIX: No onclick on this parent div -->
             <div id="companion-memory" class="companion-memory">
                 <span>Welcome back. What's on your mind?</span>
             </div>
@@ -143,7 +142,6 @@
 
         function navigateToPage(page) { window.location.href = page; }
         
-        // Use window scope to ensure it's accessible from ai-logger.js
         window.currentQuestLink = null;
 
         function gotoQuest() { 
@@ -162,10 +160,15 @@
         function updateDashboard(view) {
             if (window.Juice) Juice.checkLevelUp(view);
 
-            document.getElementById('hud-level').textContent = view.level;
-            const progress = (view.xp / view.xpNeeded) * 100;
+            // FIX: Fallbacks in case the view is missing data
+            const level = view.level || 1;
+            const xp = view.xp || 0;
+            const xpNeeded = view.xpNeeded || 1000;
+
+            document.getElementById('hud-level').textContent = level;
+            const progress = (xp / xpNeeded) * 100;
             document.getElementById('xp-bar-fill').style.width = `${progress}%`;
-            document.getElementById('xp-text').textContent = `${view.xp} / ${view.xpNeeded} XP`;
+            document.getElementById('xp-text').textContent = `${xp} / ${xpNeeded} XP`;
 
             const bubble = document.getElementById('companion-memory');
             if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
@@ -181,11 +184,11 @@
             }
 
             const sanctuary = document.getElementById('sanctuary');
-            sanctuary.setAttribute('data-dominant', view.dominantStat);
+            if (view.dominantStat) sanctuary.setAttribute('data-dominant', view.dominantStat);
 
             const zenRock = document.getElementById('zen-rock');
             const lockMsg = document.getElementById('zen-lock-msg');
-            const vitality = (view.vars.mood + view.vars.rest) / 2;
+            const vitality = ((view.vars?.mood || 0) + (view.vars?.rest || 0)) / 2;
             
             if (vitality < 20) {
                 lockMsg.style.display = 'block';
@@ -229,10 +232,10 @@
 
             ctx.textAlign = 'center';
             ctx.fillStyle = '#00e5ff'; ctx.font = 'bold 80px Inter, sans-serif'; ctx.fillText('VITVERSE', 540, 200);
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillText(`LEVEL ${view.level}`, 540, 300);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillText(`LEVEL ${view.level || 1}`, 540, 300);
             
             ctx.fillStyle = '#8b9bb4'; ctx.font = '40px monospace';
-            ctx.fillText(`Day Streak: ${Math.floor(view.xp / 100) + 1} 🔥`, 540, 1400);
+            ctx.fillText(`Day Streak: ${Math.floor((view.xp || 0) / 100) + 1} 🔥`, 540, 1400);
 
             ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '30px Inter, sans-serif'; ctx.fillText('vitverse-mauve.vercel.app/?ref=share', 540, 1800);
 
