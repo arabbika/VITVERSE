@@ -1,12 +1,12 @@
 /**
- * Vitverse Companion — Real-Life RPG Engine (v4.0)
- * Simplified: Removed inventory/loot to focus on core stats and AI.
+ * Vitverse Companion — Real-Life RPG Engine (v4.1)
+ * Bulletproofed: Handles missing/corrupt data gracefully.
  */
 const Companion = (() => {
-  const KEY = 'vitverse.companion.v3'; // Kept as v3 to preserve existing user data
+  const KEY = 'vitverse.companion.v4'; // UPGRADED TO V4 TO CLEAR OLD DATA
 
   const CFG = {
-    version: 3,
+    version: 4,
     floors:    { calm: 30, energy: 35, rest: 40, mood: 45 },
     halfLifeH: { calm: 36, energy: 48, rest: 72, mood: 96 },
     dailyCap:  { calm: 25, energy: 20, rest: 25, mood: 15 },
@@ -30,14 +30,12 @@ const Companion = (() => {
     events: [],
   });
 
-  // --- Lazy Decay ---
   function decayed(s, now) {
     const dtH = Math.max(0, Math.min(CFG.maxDecayH, (now - s.lastTick) / 3.6e6));
     const out = { ...s.vars };
     const mean = (out.calm + out.energy + out.rest) / 3;
     
     for (const k of Object.keys(out)) {
-      // Mood's floor is dynamic based on the other stats
       const floor = k === 'mood' ? 0.7 * CFG.floors.mood + 0.3 * mean : CFG.floors[k];
       const lambda = Math.LN2 / CFG.halfLifeH[k];
       out[k] = floor + (out[k] - floor) * Math.exp(-lambda * dtH);
@@ -45,36 +43,28 @@ const Companion = (() => {
     return out;
   }
 
-  // --- Diminishing Returns ---
   const dim = (used, cap) => {
     const r = used / cap;
     return r < 0.5 ? 1 : r < 0.8 ? 0.6 : r >= 1 ? 0 : 0.3;
   };
 
-  // --- Event Rules ---
   const RULES = {
     BREATHE_COMPLETE:    { m: 'breathewell', d: p => ({ 
       calm: ({ b478: 8, box: 6, alternateNostril: 6 })[p.protocol] ?? 5, xp: 50 }) },
-    
     TASK_COMPLETE:       { m: 'chronozen',   d: () => ({ 
       energy: 5, mood: 2, xp: 100 }) },
-    
     SLEEP_LOGGED:        { m: 'sleep',       d: p => {
       const h = p.hours ?? 7; 
       const q = clamp(p.quality ?? 3, 1, 5);
       const band = (h >= 7 && h <= 9) ? 20 : (h >= 6 && h <= 10) ? 12 : 5;
       return { rest: band * (0.8 + 0.1 * (q - 1)), xp: 80 };
     } },
-    
     MOOD_CHECKIN:        { m: 'soulsync',    d: (p, v) => ({ 
       mood: 0.4 * (clamp(p.value, 1, 5) * 20 - v.mood), xp: 20 }) },
-    
     REFLECTION_WRITTEN:  { m: 'reflection',  d: () => ({ 
       mood: 3, xp: 50 }) },
-    
     EXERCISE_LOGGED:     { m: 'exercise',    d: () => ({ 
       energy: 8, mood: 2, xp: 75 }) },
-    
     ZEN_SESSION:         { m: 'zen',         d: () => ({ 
       calm: 10, xp: 50 }) }, 
   };
@@ -82,7 +72,7 @@ const Companion = (() => {
   function apply(s, event, now = Date.now()) {
     const rule = RULES[event?.type];
     if (!rule) throw new Error(`unknown event: ${event?.type}`);
-    if (event.id && s.seen.includes(event.id)) return s;
+    if (event.id && s.seen?.includes(event.id)) return s;
 
     const vars = decayed(s, now);
     const raw  = rule.d(event.payload ?? {}, vars);
@@ -90,23 +80,24 @@ const Companion = (() => {
     delete raw.xp;
 
     const today = dateKey(new Date(now));
-    const gains = today === s.day ? { ...s.gains } : { calm: 0, energy: 0, rest: 0, mood: 0 };
+    const gains = today === s.day ? { ...(s.gains || { calm: 0, energy: 0, rest: 0, mood: 0 }) } : { calm: 0, energy: 0, rest: 0, mood: 0 };
 
     for (const [k, d] of Object.entries(raw)) {
       if (!(k in vars)) continue;
       let delta = d;
       if (delta > 0) {
         const cap = CFG.dailyCap[k];
-        delta = Math.min(delta * dim(gains[k], cap), cap - gains[k]);
-        gains[k] = clamp(gains[k] + delta, 0, cap);
+        delta = Math.min(delta * dim(gains[k] || 0, cap), cap - (gains[k] || 0));
+        gains[k] = clamp((gains[k] || 0) + delta, 0, cap);
       }
       vars[k] = clamp(vars[k] + delta);
     }
 
-    // Leveling Logic
-    let newXp = s.xp + xpGain;
-    let newLevel = s.level;
+    // FIX: Fallbacks for missing xp/level
+    let newXp = (s.xp ?? 0) + xpGain;
+    let newLevel = s.level ?? 1;
     let xpNeeded = newLevel * 1000;
+    
     while (newXp >= xpNeeded) { 
       newXp -= xpNeeded; 
       newLevel++; 
@@ -116,12 +107,11 @@ const Companion = (() => {
     return {
       ...s, vars, xp: newXp, level: newLevel,
       lastTick: now, day: today, gains,
-      seen:   event.id ? [...s.seen, event.id].slice(-CFG.maxSeen) : s.seen,
-      events: [...s.events, { type: event.type, m: rule.m, ts: now, payload: event.payload }].slice(-CFG.maxEvents),
+      seen:   event.id ? [...(s.seen || []), event.id].slice(-CFG.maxSeen) : (s.seen || []),
+      events: [...(s.events || []), { type: event.type, m: rule.m, ts: now, payload: event.payload }].slice(-CFG.maxEvents),
     };
   }
 
-  // --- Quest Generation ---
   function getQuest(v) {
     const stats = [
       { key: 'calm', val: v.calm, text: "The winds of chaos are rising. We must restore Focus.", link: "breathewell.html", action: "Cast Focus" },
@@ -133,12 +123,10 @@ const Companion = (() => {
     return stats[0];
   }
 
-  // --- View State for UI ---
   function view(s, now = Date.now()) {
     const v = decayed(s, now);
     const h = new Date(now).getHours();
     
-    // Determine Aura
     const auraStats = [ 
       { name: 'calm', val: v.calm }, 
       { name: 'energy', val: v.energy }, 
@@ -149,9 +137,9 @@ const Companion = (() => {
 
     return {
       vars: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round(x)])),
-      xp: s.xp, 
-      level: s.level, 
-      xpNeeded: s.level * 1000,
+      xp: s.xp ?? 0, 
+      level: s.level ?? 1, 
+      xpNeeded: (s.level ?? 1) * 1000,
       dominantStat: auraStats[0].name,
       moodWord:  v.mood >= 80 ? 'radiant' : v.mood >= 60 ? 'content' : v.mood >= 45 ? 'settled' : v.mood >= 30 ? 'quiet' : 'low',
       energyBand: v.energy >= 70 ? 'bouncy' : v.energy >= 45 ? 'steady' : 'slow',
@@ -161,7 +149,6 @@ const Companion = (() => {
     };
   }
 
-  // --- Persistence ---
   function load() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY));
@@ -169,10 +156,13 @@ const Companion = (() => {
     } catch { return blank(); }
   }
   
-  const save = s => localStorage.setItem(KEY, JSON.stringify(s));
+  const save = s => {
+    try { localStorage.setItem(KEY, JSON.stringify(s)); } 
+    catch (e) { console.error("Failed to save state", e); }
+  };
+  
   const fire = s => window.dispatchEvent(new CustomEvent('companion:update', { detail: view(s) }));
 
-  // --- Public API ---
   return {
     get: () => load(), 
     view: (now) => view(load(), now),
