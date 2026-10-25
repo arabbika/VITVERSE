@@ -2,7 +2,7 @@
  * Vitverse — Cloud Sync Engine (Supabase)
  */
 const CloudSync = (() => {
-  // Replace these with your actual keys if you aren't using Vercel env vars
+  // Leave these as is for now. We will add keys later.
   const SUPABASE_URL = 'YOUR_SUPABASE_URL';
   const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
   
@@ -11,6 +11,12 @@ const CloudSync = (() => {
   let syncTimeout = null;
 
   function init() {
+    // FIX: Don't crash if keys aren't set up yet
+    if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+      console.warn("[CloudSync] Skipping: Supabase keys not configured.");
+      return;
+    }
+
     if (typeof supabase === 'undefined' || !window.supabase) {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -62,7 +68,6 @@ const CloudSync = (() => {
     if (data && data.state) {
       const localState = Companion.get();
       
-      // FIX: Only overwrite if the cloud state is actually newer/has more progress
       const cloudXp = data.state.xp || 0;
       const localXp = localState.xp || 0;
       const cloudLevel = data.state.level || 1;
@@ -73,9 +78,7 @@ const CloudSync = (() => {
         if (window.Companion) {
           window.dispatchEvent(new CustomEvent('companion:update', { detail: Companion.view() }));
         }
-        console.log("Newer cloud state loaded.");
       } else {
-        console.log("Local state is newer. Pushing to cloud.");
         pushToCloud();
       }
     }
