@@ -1,12 +1,8 @@
-/**
- * Vitverse — AI Logger (Unified & Secured)
- */
 const AILogger = (() => {
   let isListening = false;
   let recognition = null;
-  let isProcessing = false; // Prevents double-submit
+  let isProcessing = false;
 
-  // Escape HTML to prevent XSS
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -16,9 +12,7 @@ const AILogger = (() => {
     recognition.interimResults = false;
     recognition.onstart = () => { isListening = true; updateMicUI(true); };
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      document.getElementById('ai-input').value = transcript;
-      // We no longer auto-submit on voice, let them review the transcript first
+      document.getElementById('ai-input').value = event.results[0][0].transcript;
     };
     recognition.onend = () => { isListening = false; updateMicUI(false); };
   }
@@ -71,14 +65,14 @@ const AILogger = (() => {
       });
     }
 
-    html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic || 'Take a deep breath.')}</div></div>`;
+    html += `<div class="phase-card phase-somatic"><div class="phase-title"><i class="fa-solid fa-spa"></i> Somatic Reset</div><div class="phase-content">${esc(data.somatic)}</div></div>`;
     html += `<button class="dismiss-plan-btn" onclick="AILogger.dismiss()"><i class="fa-solid fa-check-circle"></i> Acknowledge & Return</button></div>`;
     return html;
   }
 
   function dismiss() {
     const bubble = document.getElementById('companion-memory');
-    bubble.classList.remove('is-expanded');
+    bubble.classList.remove('is-expanded', 'is-pinned');
     if (window.Companion) window.dispatchEvent(new CustomEvent('companion:update', { detail: Companion.view() }));
   }
 
@@ -90,8 +84,7 @@ const AILogger = (() => {
     const bubble = document.getElementById('companion-memory');
     const originalText = input.value;
     
-    // Do NOT clear input yet
-    bubble.classList.remove('is-expanded');
+    bubble.classList.remove('is-expanded', 'is-pinned');
     bubble.innerHTML = `<span style="color:var(--accent);"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing...</span>`;
 
     try {
@@ -101,44 +94,64 @@ const AILogger = (() => {
         body: JSON.stringify({ brainDump: text })
       });
 
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('Something went wrong. Please try again.');
+      }
+
+      if (!response.ok || data.error) throw new Error(data.error || 'Failed.');
 
       input.value = ''; // Clear only on success
 
+      // --- CRISIS HANDLING (Pinned, No XP) ---
       if (data.type === 'crisis') {
+        bubble.classList.add('is-pinned');
         bubble.innerHTML = `
-          <span style="color:#ff4444; font-weight:bold;">${esc(data.text)}</span>
-          <br><br>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <span style="color:#ff4444; font-weight:bold; padding-right:16px;">${esc(data.text)}</span>
+            <button onclick="AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+          </div>
+          <br>
           <div style="font-size:12px; line-height:1.6;">
             ${data.resources.map(r => `<b>${esc(r.name)}:</b> ${esc(r.contact)}`).join('<br>')}
           </div>
           <br>
-          <div style="font-size:11px; color:var(--text-muted); font-style:italic;">
-            ${esc(data.disclaimer)}
-          </div>
+          <div style="font-size:11px; color:var(--text-muted); font-style:italic;">${esc(data.disclaimer)}</div>
         `;
+        return; // EXIT EARLY: Do not award XP for a crisis
       } 
+      
+      // --- EMPATHY HANDLING (Pinned temporarily) ---
       else if (data.type === 'empathy') {
         triggerAbsorption();
-        bubble.innerHTML = `<span style="color:#ff8fb8; font-style:italic;">"${esc(data.text)}"</span>`;
+        bubble.classList.add('is-pinned');
+        bubble.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <span style="color:#ff8fb8; font-style:italic; padding-right:16px;">"${esc(data.text)}"</span>
+            <button onclick="AILogger.dismiss()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+          </div>
+        `;
         if (window.Juice) Juice.playPetSound();
       } 
+      
+      // --- PLAN HANDLING ---
       else if (data.type === 'plan') {
         bubble.innerHTML = formatPlanResponse(data);
         bubble.classList.add('is-expanded');
         if (window.Juice) Juice.playPetSound();
       }
 
-      // Award XP
+      // Award XP safely
       if (window.Companion) {
         Companion.emit({ id: crypto.randomUUID(), type: 'REFLECTION_WRITTEN' });
       }
 
     } catch (err) {
-      bubble.classList.remove('is-expanded');
+      bubble.classList.remove('is-expanded', 'is-pinned');
       bubble.innerHTML = `<span style="color:#ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(err.message)}</span>`;
-      input.value = originalText; // Restore text on failure!
+      input.value = originalText; 
     } finally {
       isProcessing = false;
     }
