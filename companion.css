@@ -250,3 +250,6 @@
   transform: none;
   background: var(--bg-surface);
 }
+
+/* --- REMOVE INVENTORY (Overrides) --- */
+.inventory-dock, .item-slot, .dock-item { display: none !important; }
