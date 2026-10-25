@@ -1,72 +1,82 @@
 // api/chat.js
-export const maxDuration = 60; 
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+export const maxDuration = 60;
+
+// Initialize Rate Limiter (8 requests per minute per IP)
+const rl = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(8, '1m'),
+});
+
+const CRISIS_RESPONSE = {
+  type: 'crisis',
+  text: "I hear how much pain you are in. You don't have to carry this alone. Please reach out to people who can help right now.",
+  resources: [
+    { name: "Find A Helpline (Global)", contact: "findahelpline.com" },
+    { name: "US & Canada", contact: "Call or text 988" },
+    { name: "UK & Ireland", contact: "Call 116 123" },
+    { name: "Australia", contact: "Call 13 11 14" }
+  ],
+  disclaimer: "If you are in immediate danger, please call your local emergency number (e.g., 911, 112, or 999)."
+};
+
+// Sanitizer for AI Output
+const str = (v, max) => typeof v === 'string' ? v.trim().slice(0, max) : '';
+function sanitize(p) {
+  if (p?.type === 'crisis') return CRISIS_RESPONSE;
+  if (p?.type === 'plan' && str(p.objective, 300) && Array.isArray(p.phases)) {
+    return { 
+      type: 'plan', 
+      objective: str(p.objective, 300),
+      phases: p.phases.slice(0, 3).map(x => ({ title: str(x.title, 60), content: str(x.content, 400) })),
+      somatic: str(p.somatic, 300) 
+    };
+  }
+  if (p?.type === 'empathy' && str(p.text, 600)) {
+    return { type: 'empathy', text: str(p.text, 600) };
+  }
+  return null; // Fallback
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { brainDump } = req.body;
-  if (!brainDump) return res.status(400).json({ error: 'No input provided' });
+  // 1. Rate Limiting
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] ?? 'anon';
+  const { success } = await rl.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Slow down a little. Try again in a minute.' });
 
-  // =========================================================
-  // 1. CRISIS DETECTION (Safety First & Globally Generic)
-  // =========================================================
-  const crisisRegex = /(suicide|kill myself|end it|want to die|hurt myself|self harm)/i;
-  
-  if (crisisRegex.test(brainDump)) {
-    return res.status(200).json({
-      type: 'crisis',
-      text: "I hear how much pain you are in. You don't have to carry this alone. Please reach out to people who can help right now.",
-      resources: [
-        { 
-          name: "Find A Helpline (Global Directory)", 
-          contact: "findahelpline.com" 
-        },
-        { 
-          name: "UK & Ireland (Samaritans)", 
-          contact: "Call 116 123" 
-        },
-        { 
-          name: "Canada (Talk Suicide)", 
-          contact: "Call or text 988" 
-        },
-        { 
-          name: "Australia (Lifeline)", 
-          contact: "Call 13 11 14" 
-        }
-      ],
-      disclaimer: "If you are in immediate danger, please call your local emergency number (e.g., 911, 112, or 999)."
-    });
+  // 2. Input Validation
+  const brainDump = typeof req.body?.brainDump === 'string' ? req.body.brainDump.trim() : '';
+  if (!brainDump || brainDump.length > 2000) {
+    return res.status(400).json({ error: 'Please keep your message under 2,000 characters.' });
   }
 
-  // =========================================================
-  // 2. AI PERSONA & SYSTEM PROMPT
-  // =========================================================
+  // 3. Strict Crisis Detection (Regex Layer 1)
+  const crisisRegex = /\b(suicid\w*|kill(ing)? myself|end(ing)? (my life|it all)|take my own life|want(ed)? to die|don'?t want to (be here|live|wake up)|better off without me|hurt(ing)? myself|self[- ]?harm|cut(ting)? myself)\b/i;
+  
+  if (crisisRegex.test(brainDump)) {
+    return res.status(200).json(CRISIS_RESPONSE);
+  }
+
+  // 4. AI Persona & Prompt
   const systemPrompt = `You are the AI core of Vitverse, a safe space for mental health and focus.
-The user will give you a brain dump. You must decide if they need EMPATHY (a listening ear) or a PLAN (tactical steps).
+The user will give you a brain dump. You must decide if they need EMPATHY or a PLAN.
 
-CRITICAL: You must respond ONLY with a valid JSON object. Do NOT wrap it in markdown code blocks (like \`\`\`json). Do NOT include any text outside the JSON. 
+CRITICAL SAFETY RULES:
+1. If the message suggests the user may harm themselves or others, you must respond with exactly: {"type":"crisis"} and nothing else.
+2. Do not diagnose medical conditions. Do not give medical advice. Do not validate harmful beliefs.
 
-If they need empathy/venting, use this exact structure:
-{
-  "type": "empathy",
-  "text": "A warm, deeply validating 2-sentence response that acknowledges their feelings."
-}
+Respond ONLY in valid JSON format matching one of these two structures:
 
-If they need a plan/tasks, use this exact structure:
-{
-  "type": "plan",
-  "objective": "One sentence anchor goal.",
-  "phases": [
-    { "title": "Phase 1", "content": "Low-friction sprint." },
-    { "title": "Phase 2", "content": "Validation checkpoint." },
-    { "title": "Phase 3", "content": "Pivot logic." }
-  ],
-  "somatic": "One sentence of physiological grounding."
-}`;
+If they need empathy:
+{"type": "empathy", "text": "A warm, deeply validating 2-sentence response."}
 
-  // =========================================================
-  // 3. xAI API CALL
-  // =========================================================
+If they need a plan:
+{"type": "plan", "objective": "One sentence anchor goal.", "phases": [{"title": "Phase 1", "content": "Sprint."}, {"title": "Phase 2", "content": "Checkpoint."}, {"title": "Phase 3", "content": "Pivot."}], "somatic": "One sentence of physiological grounding."}`;
+
   try {
     const response = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
@@ -74,13 +84,11 @@ If they need a plan/tasks, use this exact structure:
         "Authorization": `Bearer ${process.env.XAI_API_KEY}`,
         "Content-Type": "application/json"
       },
-      // Abort if xAI takes longer than 25 seconds (prevents Vercel timeout crash)
-      signal: AbortSignal.timeout(25000), 
+      signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
-        model: "grok-4.7", // Ensure this is the model your xAI account has access to
+        model: "grok-4.7", 
         max_tokens: 600,
-        temperature: 0.7,
-        response_format: { type: "json_object" }, // Force JSON mode
+        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: brainDump }
@@ -91,25 +99,24 @@ If they need a plan/tasks, use this exact structure:
     const rawText = await response.text(); 
     
     if (!response.ok) {
-      console.error("xAI Error Status:", response.status);
-      console.error("xAI Error Body:", rawText);
+      console.error("xAI API Error Status:", response.status); // Privacy: Do not log rawText
       return res.status(500).json({ error: 'AI failed to respond. Please try again.' });
     }
 
     const data = JSON.parse(rawText);
     const aiText = data.choices[0].message.content;
     
-    // =========================================================
-    // 4. PARSE AI RESPONSE
-    // =========================================================
+    // 5. Parse & Sanitize
     try {
-      // Sometimes AI still wraps in markdown, so we strip it just in case
       const cleanJson = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
-      return res.status(200).json(parsed);
+      const safeData = sanitize(parsed);
+      
+      if (!safeData) throw new Error("Invalid schema");
+      return res.status(200).json(safeData);
+      
     } catch (e) {
-      console.error("Failed to parse AI JSON:", aiText);
-      // Fallback if the AI hallucinates bad JSON
+      console.error("Failed to parse AI JSON. Status code:", response.status); // Privacy: No log of model output
       return res.status(200).json({ 
         type: 'empathy', 
         text: "I'm here with you. Let's take a deep breath together." 
@@ -117,13 +124,7 @@ If they need a plan/tasks, use this exact structure:
     }
 
   } catch (error) {
-    console.error("Serverless Function Error:", error);
-    
-    // Handle Timeout specifically
-    if (error.name === 'TimeoutError') {
-      return res.status(504).json({ error: 'Aura is thinking too hard. Please try a shorter message.' });
-    }
-    
+    console.error("Serverless Function Error:", error.message);
     return res.status(500).json({ error: 'Aura crashed internally. Please try again.' });
   }
 }
