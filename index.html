@@ -11,7 +11,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f111a">
     
-    <!-- PostHog Analytics (MAKE SURE TO REPLACE THE KEY) -->
+    <!-- PostHog Analytics -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
         posthog.init('phc_CC5ECZG6RiCbfpFKYXBXgsRpe6BbGBmpKxCDvSWNJgNy', {api_host: 'https://app.posthog.com'});
@@ -98,7 +98,6 @@
                 </div>
             </div>
 
-            <!-- HUD -->
             <div class="hud-container">
                 <div class="hud-top">
                     <div class="level-text">LEVEL <span id="hud-level">1</span></div>
@@ -131,7 +130,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="companion.js"></script>
     <script src="companion-ui.js"></script>
     <script src="juice.js"></script>
@@ -294,18 +292,20 @@
             CompanionUI.mount(document.getElementById('companion'));
             
             // 2. Initial Render
-            updateDashboard(Companion.view());
+            const initialView = Companion.view();
+            console.log("[Index] Initial View Loaded:", initialView);
+            updateDashboard(initialView);
 
             // 3. Listen for real-time updates
             window.addEventListener('companion:update', (e) => {
-                console.log("[Index] State updated! Refreshing UI...");
+                console.log("[Index] State updated! Refreshing UI...", e.detail);
                 updateDashboard(e.detail);
             });
 
-            // 4. Fallback Polling (Just in case an event is missed)
+            // 4. Fallback Polling (Every 3 seconds to guarantee UI matches data)
             setInterval(() => {
                 updateDashboard(Companion.view());
-            }, 5000);
+            }, 3000);
 
             if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
             checkTutorial();
