@@ -101,7 +101,7 @@ const AILogger = (() => {
     bubble.innerHTML = `<span style="color:var(--accent);"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing...</span>`;
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('https://vitverse-mauve.vercel.app/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ brainDump: text })
