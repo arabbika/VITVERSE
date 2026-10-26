@@ -15,6 +15,21 @@
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
         posthog.init('phc_CC5ECZG6RiCbfpFKYXBXgsRpe6BbGBmpKxCDvSWNJgNy', {api_host: 'https://app.posthog.com'});
     </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then((registration) => {
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            }).catch((error) => console.error('SW registration failed:', error));
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -135,67 +150,74 @@
             if (window.Juice) { Juice.playPetSound(); Juice.vibrate(30); }
         }
 
-        function updateDashboard(view) {
-            if (!view) return;
-            try { if (window.Juice) Juice.checkLevelUp(view); } catch (e) {}
+        // FIXED: Removed the argument from the function
+        function updateDashboard() {
+            try {
+                // Always read directly from the engine to get the latest state
+                const s = Companion.get();
+                const view = Companion.view();
+                
+                const level = s.level || 1;
+                const xp = s.xp || 0;
+                const xpNeeded = level * 1000;
 
-            const level = view.level || 1;
-            const xp = view.xp || 0;
-            const xpNeeded = view.xpNeeded || 1000;
+                const levelEl = document.getElementById('hud-level');
+                const xpTextEl = document.getElementById('xp-text');
+                const xpBarEl = document.getElementById('xp-bar-fill');
 
-            document.getElementById('hud-level').textContent = level;
-            document.getElementById('xp-bar-fill').style.width = `${(xp / xpNeeded) * 100}%`;
-            document.getElementById('xp-text').textContent = `${xp} / ${xpNeeded} XP`;
+                if (levelEl) levelEl.textContent = level;
+                if (xpTextEl) xpTextEl.textContent = `${xp} / ${xpNeeded} XP`;
+                if (xpBarEl) xpBarEl.style.width = `${(xp / xpNeeded) * 100}%`;
 
-            const bubble = document.getElementById('companion-memory');
-            if (!bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
-                if (view.quest) {
-                    bubble.innerHTML = `<div style="cursor:pointer;" onclick="gotoQuest()"><span>${esc(view.quest.text)}</span><span class="quest-action">👉 ${esc(view.quest.action)}</span></div>`;
-                    window.currentQuestLink = view.quest.link;
+                const bubble = document.getElementById('companion-memory');
+                
+                if (bubble && !bubble.classList.contains('is-expanded') && !bubble.classList.contains('is-pinned') && !bubble.innerHTML.includes('fa-spinner')) {
+                    if (view.quest) {
+                        bubble.innerHTML = `
+                            <div style="cursor:pointer;" onclick="gotoQuest()">
+                                <span>${esc(view.quest.text)}</span>
+                                <span class="quest-action">👉 ${esc(view.quest.action)}</span>
+                            </div>
+                        `;
+                        window.currentQuestLink = view.quest.link;
+                    }
                 }
-            }
 
-            const sanctuary = document.getElementById('sanctuary');
-            if (view.dominantStat) sanctuary.setAttribute('data-dominant', view.dominantStat);
+                const sanctuary = document.getElementById('sanctuary');
+                if (sanctuary && view.dominantStat) sanctuary.setAttribute('data-dominant', view.dominantStat);
 
-            const zenRock = document.getElementById('zen-rock');
-            const lockMsg = document.getElementById('zen-lock-msg');
-            const vitality = ((view.vars?.mood || 0) + (view.vars?.rest || 0)) / 2;
-            
-            if (vitality < 20) {
-                lockMsg.style.display = 'block';
-                zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; 
-                zenRock.style.animation = 'float-rock 2s infinite ease-in-out';
-            } else {
-                lockMsg.style.display = 'none';
-                zenRock.style.filter = 'drop-shadow(0 0 15px var(--accent))';
-                zenRock.style.animation = 'float-rock 4s infinite ease-in-out';
+                const zenRock = document.getElementById('zen-rock');
+                const lockMsg = document.getElementById('zen-lock-msg');
+                const vitality = ((view.vars?.mood || 0) + (view.vars?.rest || 0)) / 2;
+                
+                if (zenRock && lockMsg) {
+                    if (vitality < 20) {
+                        lockMsg.style.display = 'block';
+                        zenRock.style.filter = 'drop-shadow(0 0 25px #4ade80)'; 
+                        zenRock.style.animation = 'float-rock 2s infinite ease-in-out';
+                    } else {
+                        lockMsg.style.display = 'none';
+                        zenRock.style.filter = 'drop-shadow(0 0 15px var(--accent))';
+                        zenRock.style.animation = 'float-rock 4s infinite ease-in-out';
+                    }
+                }
+            } catch (e) {
+                console.error("Dashboard update error:", e);
             }
         }
 
-        // NEW: Force update on page load AND when navigating back from another page
-        function initDashboard() {
-            CompanionUI.mount(document.getElementById('companion'));
-            updateDashboard(Companion.view());
-        }
-
-        window.addEventListener('pageshow', (event) => {
-            // Fires when page is loaded normally OR restored from bfcache
-            if (event.persisted) {
-                updateDashboard(Companion.view());
-            }
-        });
+        // FIXED: Use arrow function so it doesn't pass the timer ID
+        setInterval(() => updateDashboard(), 1000);
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.posthog) window.posthog.capture('first_open');
-            initDashboard();
+            try { if (window.posthog) window.posthog.capture('first_open'); } catch(e) {}
+            try { CompanionUI.mount(document.getElementById('companion')); } catch(e) { console.error("UI Mount Error", e); }
             
-            window.addEventListener('companion:update', (e) => updateDashboard(e.detail));
-            setInterval(() => updateDashboard(Companion.view()), 3000);
+            updateDashboard(); // Run immediately
 
             if (window.Juice) setTimeout(() => Juice.initParticles(), 100);
-            checkTutorial();
             
+            try { checkTutorial(); } catch(e) {}
             try { if (window.CloudSync) CloudSync.init(); } catch (e) {}
         });
 
