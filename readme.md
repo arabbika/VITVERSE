@@ -20,7 +20,7 @@
 
 | The Sanctuary (Home) | The AI Confidant | The Zen Sandbox |
 |:---:|:---:|:---:|
-| <img src="[[LINK_TO_MAIN_SCREENSHOT]]" width="250" /> | <img src="[[LINK_TO_AI_SCREENSHOT]]" width="250" /> | <img src="[[LINK_TO_ZEN_SCREENSHOT]]" width="250" /> |
+| <img src="./assets/main-screen.png" width="250" /> | <img src="./assets/ai-confidant.png" width="250" /> | <img src="./assets/zen-sandbox.png" width="250" /> |
 | *A dynamic glowing companion whose Aura changes based on your real-life stats.* | *An emotionally intelligent AI that parses "brain dumps" into actionable game plans or empathy.* | *A spatial, Web Audio-powered Zen garden for active meditation.* |
 
 ---
