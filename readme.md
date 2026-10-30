@@ -3,17 +3,14 @@
 
 **A gamified, AI-powered wellness app designed to stop burnout, make self-care fun, and build a genuine emotional connection with your habits.**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-vitverse--mauve.vercel.app-00e5ff?style=for-the-badge&logo=vercel)](https://vitverse-mauve.vercel.app/)
-[![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=for-the-badge&logo=pwa)](https://vitverse-mauve.vercel.app/)
-
 <div align="center">
 
-**[📸 Screenshots](#-screenshots)** • 
-**[🎯 Why Vitverse?](#-why-vitverse-the-story)** • 
-**[✨ Core Features](#-core-features)** • 
-**[🛠️ Tech Stack](#%EF%B8%8F-how-its-built-the-tech)** • 
-**[🚀 Business Model](#-business--monetization)** • 
-**[💻 Run Locally](#-running-locally)**
+[![Screenshots](https://img.shields.io/badge/📸_Screenshots-1a1a1a?style=for-the-badge)](#-screenshots)
+[![Why Vitverse](https://img.shields.io/badge/🎯_Why_Vitverse-1a1a1a?style=for-the-badge)](#-why-vitverse-the-story)
+[![Core Features](https://img.shields.io/badge/✨_Core_Features-1a1a1a?style=for-the-badge)](#-core-features)
+[![Tech Stack](https://img.shields.io/badge/🛠️_Tech_Stack-1a1a1a?style=for-the-badge)](#%EF%B8%8F-how-its-built-the-tech)
+[![Business Model](https://img.shields.io/badge/🚀_Business_Model-1a1a1a?style=for-the-badge)](#-business--monetization)
+[![Run Locally](https://img.shields.io/badge/💻_Run_Locally-1a1a1a?style=for-the-badge)](#-running-locally)
 
 </div>
 
