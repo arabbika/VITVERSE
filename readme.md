@@ -6,9 +6,20 @@
 [![Live Demo](https://img.shields.io/badge/Live_Demo-vitverse--mauve.vercel.app-00e5ff?style=for-the-badge&logo=vercel)](https://vitverse-mauve.vercel.app/)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=for-the-badge&logo=pwa)](https://vitverse-mauve.vercel.app/)
 
+<div align="center">
+
+**[📸 Screenshots](#-screenshots)** • 
+**[🎯 Why Vitverse?](#-why-vitverse-the-story)** • 
+**[✨ Core Features](#-core-features)** • 
+**[🛠️ Tech Stack](#%EF%B8%8F-how-its-built-the-tech)** • 
+**[🚀 Business Model](#-business--monetization)** • 
+**[💻 Run Locally](#-running-locally)**
+
+</div>
+
 ---
 
-## 📸 [Screenshots](#screenshots)
+## 📸 Screenshots
 *Click to expand*
 
 | The Sanctuary (Home) | The AI Confidant | The Zen Sandbox |
@@ -18,7 +29,7 @@
 
 ---
 
-## 🎯 [Why Vitverse? (The Story)](#why-vitverse-the-story)
+## 🎯 Why Vitverse? (The Story)
 Let's be honest: most wellness apps are either guilt-tripping streak trackers (like Habitica) or sterile meditation libraries (like Calm). 
 
 **Vitverse is different.** It bridges the gap between emotional attachment and actual accountability. 
@@ -33,7 +44,7 @@ Instead of just tracking habits, you are taking care of a glowing digital Compan
 
 ---
 
-## ✨ [Core Features](#core-features)
+## ✨ Core Features
 *   🫁 **BreatheWell:** Scientifically backed 4-7-8 and Box breathing protocols.
 *   ✅ **ChronoZen:** A drag-and-drop task calendar that turns your chores into "Quests" that feed the Companion.
 *   🌙 **Dreamweaver:** A sleep tracker with a reactive 3D moon that changes color based on how you slept.
@@ -44,7 +55,7 @@ Instead of just tracking habits, you are taking care of a glowing digital Compan
 
 ---
 
-## 🛠️ [How It's Built (The Tech)](#how-its-built-the-tech)
+## 🛠️ How It's Built (The Tech)
 We built Vitverse with a "local-first" philosophy so it feels like a native app, backed by serverless cloud tech.
 
 | Layer | Technology | Why we use it |
@@ -60,7 +71,7 @@ We built Vitverse with a "local-first" philosophy so it feels like a native app,
 
 ---
 
-## 🚀 [Business & Monetization](#business--monetization)
+## 🚀 Business & Monetization
 Vitverse is a fully functional MVP with a clear path to revenue:
 
 *   **Freemium Model:** The core loop is free. The "Unlimited AI Plans," "Advanced Weekly Reports," and "Exclusive Companion Skins" can be gated behind a $4.99/month subscription.
@@ -69,7 +80,7 @@ Vitverse is a fully functional MVP with a clear path to revenue:
 
 ---
 
-## 💻 [Running Locally](#running-locally)
+## 💻 Running Locally
 1. Clone the repository:
    ```bash
    git clone https://github.com/YOUR_USERNAME/vitverse.git
