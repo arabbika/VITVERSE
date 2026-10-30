@@ -16,8 +16,7 @@
 | The Sanctuary (Home) | The AI Confidant | The Zen Sandbox |
 |:---:|:---:|:---:|
 | <img src="./assets/main-screen.png" width="250" /> | <img src="./assets/ai-confidant.png" width="250" /> | <img src="./assets/zen-sandbox.png" width="250" /> |
-| **A gamified, AI-powered wellness app designed to stop burnout, make self-care fun, and build a genuine emotional connection with your habits.** |
-
+| *A dynamic glowing companion whose Aura changes based on your real-life stats.* | *An emotionally intelligent AI that parses "brain dumps" into actionable game plans or empathy.* | *A spatial, Web Audio-powered Zen garden for active meditation.* |
 
 ---
 
